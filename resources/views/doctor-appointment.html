@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar Cita - Doctor</title>
+    <link rel="stylesheet" href="../public/styles.css">
+</head>
+<body>
+    <div class="modal-container doctor-appointment-modal">
+        <div class="modal-content">
+            <h2>AGENDAR CITA</h2>
+            
+            <form id="doctorAppointmentForm">
+                <div class="form-group">
+                    <label for="patientName">Nombre del paciente:</label>
+                    <input type="text" id="patientName" name="patientName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="patientPhone">Teléfono:</label>
+                    <input type="tel" id="patientPhone" name="patientPhone" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patientAge">Edad:</label>
+                        <input type="number" id="patientAge" name="patientAge" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientAddress">Dirección</label>
+                        <input type="text" id="patientAddress" name="patientAddress" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Seleccione una fecha y hora:</label>
+                    <div class="calendar-container">
+                        <div class="calendar" id="doctorCalendar">
+                            <!-- Calendar will be populated by JavaScript -->
+                        </div>
+                        <div id="timeSlotsPicker" class="time-slots-picker">
+                            <!-- Time slots will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancelAppointment" class="cancel-btn">Cancelar</button>
+                    <button type="submit" id="submitAppointment" class="solicitar-btn">Solicitar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="../controllers/doctorAppointmentController.js"></script>
+</body>
+</html>

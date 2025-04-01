@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Pacientes - Doctor</title>
+    <link rel="stylesheet" href="../public/styles.css">
+</head>
+<body>
+    <div class="container doctor-history">
+        <header>
+            <div class="logo">
+                <img src="../public/assets/logo.png" alt="Clínica Intel">
+            </div>
+            <nav class="main-nav">
+                <a href="admin.html">Inicio</a>
+                <a href="#">Seguimiento</a>
+                <a href="doctor-history.html" class="active">Historial Pacientes</a>
+            </nav>
+            <div class="user-icon">
+                <img src="../public/assets/user-icon.png" alt="Usuario">
+            </div>
+        </header>
+
+        <h1>Historial de citas</h1>
+        
+        <div class="history-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No. Cita</th>
+                        <th>Paciente</th>
+                        <th>Fecha de cita</th>
+                        <th>Hora inicio</th>
+                        <th>Hora final</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="patientHistory">
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="../controllers/doctorHistoryController.js"></script>
+</body>
+</html>
