@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica Miel - Seleccionar Horario</title>
+    <link rel="stylesheet" href="../public/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="../public/assets/logo-miel.png" alt="Clínica Miel" class="logo">
+            <div class="user-icon">
+                <img src="../public/assets/user-icon.png" alt="Usuario">
+            </div>
+        </div>
+
+        <h1>SELECCIONE FECHA Y HORA</h1>
+        
+        <div class="calendar-container">
+            <div class="calendar" id="calendar">
+                <!-- Calendar will be dynamically populated by JavaScript -->
+            </div>
+            
+            <div class="time-slots" id="timeSlots">
+                <!-- Time slots will be dynamically populated based on selected date -->
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <span class="color-box available"></span>
+                <span>Disponible</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box occupied"></span>
+                <span>Ya ocupada</span>
+            </div>
+        </div>
+
+        <button id="confirmAppointment" class="confirm-btn">Solicitar</button>
+    </div>
+    <script src="../controllers/scheduleController.js"></script>
+</body>
+</html>

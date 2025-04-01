@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica Miel - Inicio</title>
+    <link rel="stylesheet" href="public/styles.css">
+</head>
+<body>
+    <div class="container home-page">
+        <header>
+            <div class="logo">
+                <img src="public/assets/logo-miel.png" alt="Clínica Miel">
+            </div>
+            <nav class="main-nav">
+                <a href="#inicio" class="active">Inicio</a>
+                <a href="#sobre-nosotros">Sobre Nosotros</a>
+                <a href="#servicios">Servicios</a>
+                <a href="views/admin.html" class="admin-link">Portal Admin</a>
+            </nav>
+            <div class="user-icon">
+                <img src="public/assets/user-icon.png" alt="Usuario">
+            </div>
+        </header>
+
+        <main>
+            <section id="inicio" class="hero-section">
+                <h1>Bienvenidos a Clínica Miel</h1>
+                <p>Cuidando tu salud con tecnología y profesionalismo</p>
+                <div class="cta-container">
+                    <div class="dropdown">
+                        <button id="scheduleAppointment" class="schedule-btn">Agendar cita</button>
+                        <div id="appointmentOptions" class="dropdown-content">
+                            <button id="scheduleInPerson" class="dropdown-btn">Agendar presencialmente</button>
+                            <button id="scheduleAtHome" class="dropdown-btn">Agendar a domicilio</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sobre-nosotros" class="about-section">
+                <h2>Sobre Nosotros</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>En Clínica Miel, nos dedicamos a proporcionar servicios médicos de alta calidad con un enfoque en la rehabilitación física y el bienestar integral de nuestros pacientes.</p>
+                        <p>Nuestro equipo de profesionales altamente capacitados utiliza las últimas tecnologías y técnicas médicas para garantizar los mejores resultados en cada tratamiento.</p>
+                        <h3>Nuestra Misión</h3>
+                        <p>Brindar atención médica personalizada y de calidad, ayudando a nuestros pacientes a recuperar su salud y mejorar su calidad de vida a través de tratamientos innovadores y un seguimiento constante.</p>
+                        <h3>Nuestra Visión</h3>
+                        <p>Ser líderes en servicios de rehabilitación física y atención médica integral, reconocidos por nuestra excelencia en el servicio y el compromiso con la salud de nuestros pacientes.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="servicios" class="services-section">
+                <h2>Nuestros Servicios</h2>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <img src="public/assets/electroterapia.jpg" alt="Electroterapia" class="service-img">
+                        <h3>Electroterapia</h3>
+                        <p>Tratamientos especializados para alivio del dolor y rehabilitación muscular.</p>
+                    </div>
+                    <div class="service-card">
+                        <img src="public/assets/hidroterapia.jpg" alt="Hidroterapia" class="service-img">
+                        <h3>Hidroterapia</h3>
+                        <p>Terapia acuática para rehabilitación y fortalecimiento físico.</p>
+                    </div>
+                    <div class="service-card">
+                        <img src="public/assets/fisioterapia.jpg" alt="Fisioterapia" class="service-img">
+                        <h3>Fisioterapia</h3>
+                        <p>Programas personalizados de rehabilitación física.</p>
+                    </div>
+                    <div class="service-card">
+                        <img src="public/assets/consulta-medica.jpg" alt="Consulta Médica" class="service-img">
+                        <h3>Consulta Médica</h3>
+                        <p>Atención médica general y especializada.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="contact-info">
+                    <h3>Contacto</h3>
+                    <p>Teléfono: (123) 456-7890</p>
+                    <p>Email: contacto@clinicamiel.com</p>
+                    <p>Dirección: Av. Principal #123, Ciudad</p>
+                </div>
+                <div class="schedule-info">
+                    <h3>Horario de Atención</h3>
+                    <p>Lunes a Viernes: 8:00 AM - 8:00 PM</p>
+                    <p>Sábados: 8:00 AM - 2:00 PM</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Clínica Miel. Todos los derechos reservados.</p>
+            </div>
+        </footer>
+    </div>
+    <script src="public/js/home.js"></script>
+</body>
+</html>

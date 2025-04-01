@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica Miel - Información Previa</title>
+    <link rel="stylesheet" href="../public/styles.css">
+</head>
+<body>
+    <div class="container appointment-form">
+        <header>
+            <div class="logo">
+                <img src="../public/assets/logo-miel.png" alt="Clínica Miel">
+            </div>
+            <nav class="main-nav">
+                <a href="../index.html" class="nav-link">Inicio</a>
+            </nav>
+            <div class="user-icon">
+                <img src="../public/assets/user-icon.png" alt="Usuario">
+            </div>
+        </header>
+
+        <div class="navigation-buttons">
+            <button id="backToHome" class="back-btn"><i class="fas fa-arrow-left"></i> Regresar</button>
+        </div>
+
+        <h1>INFORMACION PREVIA</h1>
+        
+        <form id="appointmentForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre: (Autocompleta si está registrado)</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" id="telefono" name="telefono" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="edad">Edad:</label>
+                    <input type="number" id="edad" name="edad" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Dirección</label>
+                    <input type="text" id="direccion" name="direccion" required>
+                    <small>aún por definir si puede ser por ubicación iterativa</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Seleccione una fecha y hora:</label>
+                <div class="calendar-container">
+                    <div class="calendar" id="calendar">
+                        <div class="calendar-header">
+                            <h3>marzo de 2025</h3>
+                        </div>
+                        <div class="calendar-days">
+                            <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
+                            <div>Jue</div><div>Vie</div><div>Sáb</div>
+                        </div>
+                        <div class="calendar-grid">
+                            <!-- Calendar grid will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="timeSelectionContainer" style="display: none;">
+                    <label>Seleccione una hora:</label>
+                    <div class="time-slots-container" id="timeSlots">
+                        <!-- Time slots will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>¿Cuenta con algún padecimiento o discapacidad?</label>
+                <div class="radio-group">
+                    <input type="radio" id="si" name="padecimiento" value="si">
+                    <label for="si">Sí</label>
+                    <input type="radio" id="no" name="padecimiento" value="no">
+                    <label for="no">No</label>
+                </div>
+            </div>
+
+            <div class="form-group" id="padecimientoDetails" style="display: none;">
+                <label for="detalles">En caso de que elija que Sí, anótelos:</label>
+                <textarea id="detalles" name="detalles"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="cancelar" class="cancel-btn">Cancelar</button>
+                <button type="button" id="solicitar" class="solicitar-btn">Solicitar</button>
+            </div>
+        </form>
+
+        <!-- Confirmation Modal -->
+        <div id="confirmationModal" class="modal">
+            <div class="modal-content">
+                <p>Tu solicitud de cita ya ha sido enviada y se ha agregado a tu historial</p>
+                <div class="modal-buttons">
+                    <button id="goToHome" class="home-btn">Ir a inicio</button>
+                    <button id="goToHistory" class="history-btn">Ir al historial</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../controllers/appointmentController.js"></script>
+</body>
+</html>
