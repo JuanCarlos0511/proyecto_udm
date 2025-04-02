@@ -1,0 +1,56 @@
+/* Specialties Section */
+.specialties {
+    padding: 60px 0;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 40px;
+}
+
+.specialties h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #0066cc; /* Changed to blue */
+}
+
+.specialties > p {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 0 20px;
+}
+
+.service-card {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+}
+
+.service-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.service-card h3 {
+    padding: 15px 15px 10px;
+    color: #0066cc; /* Changed to blue */
+}
+
+.service-card p {
+    padding: 0 15px 15px;
+    line-height: 1.5;
+}
