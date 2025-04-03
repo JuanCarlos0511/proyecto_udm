@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Appointment;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,31 +14,38 @@ class AppointmentSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get user IDs
+        $patientId = User::where('role', 'patient')->first()->id ?? 3;
+        $doctorId = User::where('role', 'doctor')->first()->id ?? 2;
+        
         Appointment::create([
             'date' => '2025-04-15',
-            'patient_id' => 1,
-            'doctor_id' => 1,
-            'subject' => 'Annual checkup',
-            'status' => 'scheduled',
-            'modality' => 'in-person',
+            'user_id' => $patientId,
+            'subject' => 'Consulta general',
+            'status' => 'Agendado',
+            'modality' => 'Consultorio',
+            'price' => 100.00,
         ]);
         
         Appointment::create([
             'date' => '2025-04-16',
-            'patient_id' => 2,
-            'doctor_id' => 2,
-            'subject' => 'Flu symptoms',
-            'status' => 'scheduled',
-            'modality' => 'home-visit',
+            'user_id' => $patientId,
+            'subject' => 'Seguimiento de tratamiento',
+            'status' => 'Solicitado',
+            'modality' => 'Domicilio',
+            'price' => 150.00,
         ]);
         
         Appointment::create([
             'date' => '2025-04-17',
-            'patient_id' => 3,
-            'doctor_id' => 3,
-            'subject' => 'Follow-up appointment',
-            'status' => 'scheduled',
-            'modality' => 'in-person',
+            'user_id' => $patientId,
+            'subject' => 'Revisión de exámenes',
+            'status' => 'Agendado',
+            'modality' => 'Consultorio',
+            'price' => 120.00,
         ]);
+        
+        // Create additional appointments
+        Appointment::factory(5)->create();
     }
 }
