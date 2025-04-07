@@ -15,6 +15,15 @@ Route::get('/appointment', function () {
     return view('appointment');
 });
 
+// New appointment routes
+Route::get('/appointment-clinic', function () {
+    return view('appointment-clinic');
+});
+
+Route::get('/appointment-home', function () {
+    return view('appointment-home');
+});
+
 Route::get('/history', function () {
     return view('history');
 });

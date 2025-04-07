@@ -3,27 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clínica Intel - @yield('title')</title>
+    <title>Clínica Miel - @yield('title')</title>
     <link rel="stylesheet" href="{{ asset('css/main.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @yield('extra-css')
 </head>
 <body>
     <div class="container @yield('container-class')">
-        <header>
+        <header class="main-header">
             <div class="logo">
-                <img src="{{ asset('assets/logo.png') }}" alt="Clínica Intel">
+                <img src="{{ asset('assets/clinica_logo.png') }}" alt="Clínica Miel">
             </div>
             <nav class="main-nav">
                 <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">Inicio</a>
-                <a href="{{ url('appointment') }}" class="{{ request()->is('appointment*') ? 'active' : '' }}">Agendar Cita</a>
+                <div class="dropdown-nav">
+                    <a class="{{ request()->is('appointment*') || request()->is('appointment-clinic*') || request()->is('appointment-home*') ? 'active' : '' }}">Agendar Cita <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-content">
+                        <a href="{{ url('appointment-clinic') }}">En Clínica</a>
+                        <a href="{{ url('appointment-home') }}">A Domicilio</a>
+                    </div>
+                </div>
                 <a href="{{ url('history') }}" class="{{ request()->is('history*') ? 'active' : '' }}">Historial</a>
                 <a href="{{ url('admin') }}" class="{{ request()->is('admin*') ? 'active' : '' }}">Admin</a>
                 <a href="{{ url('seguimiento') }}" class="{{ request()->is('seguimiento*') ? 'active' : '' }}">Seguimiento</a>
                 <a href="{{ url('doctor-history') }}" class="{{ request()->is('doctor-history*') ? 'active' : '' }}">Historial Pacientes</a>
             </nav>
             <div class="user-icon">
-                <img src="{{ asset('assets/user-icon.png') }}" alt="Usuario">
+                <img src="{{ asset('assets/profile.png') }}" alt="Usuario">
             </div>
         </header>
 
@@ -33,12 +39,13 @@
             <div class="contact-info">
                 <i class="fas fa-phone"></i>
                 <p>4521 346</p>
-                <p>Clínica Intel | Dirección Física</p>
+                <p>Clínica Miel | Dirección Física</p>
                 <p>Horario: Lunes a Viernes 8:00 - 20:00 hrs.</p>
             </div>
         </footer>
     </div>
 
+    <script src="{{ asset('js/dropdown.js') }}"></script>
     @yield('scripts')
 </body>
 </html>
