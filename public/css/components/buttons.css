@@ -11,7 +11,7 @@
 }
 
 .schedule-btn {
-    background-color: #0066cc; /* Changed to blue */
+    background-color: #212467; 
     color: white;
     padding: 12px 30px;
     font-size: 1rem;
@@ -22,11 +22,11 @@
 }
 
 .schedule-btn:hover {
-    background-color: #004c99; /* Darker blue for hover */
+    background-color: #181a4d; 
 }
 
 .schedule-btn-large {
-    background-color: #0066cc; /* Changed to blue */
+    background-color: #212467; 
     color: white;
     padding: 15px 40px;
     font-size: 1.2rem;
@@ -37,7 +37,7 @@
 }
 
 .schedule-btn-large:hover {
-    background-color: #004c99; /* Darker blue for hover */
+    background-color: #181a4d; 
 }
 
 .dropdown-content {

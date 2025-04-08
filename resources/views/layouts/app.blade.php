@@ -4,13 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clínica Miel - @yield('title')</title>
-    <link rel="stylesheet" href="{{ asset('css/main.css') }}">
+    <!-- Base styles -->
+    <link rel="stylesheet" href="{{ asset('css/base.css') }}">
+    
+    <!-- Layout components -->
+    <link rel="stylesheet" href="{{ asset('css/layout/header.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/layout/footer.css') }}">
+    
+    <!-- UI Components -->
+    <link rel="stylesheet" href="{{ asset('css/components/hero.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/specialties.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/appointments.css') }}">
+    
+    <!-- Page-specific styles -->
+    <link rel="stylesheet" href="{{ asset('css/pages/admin.css') }}">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @yield('extra-css')
 </head>
 <body>
-    <div class="container @yield('container-class')">
-        <header class="main-header">
+    <header class="main-header">
+        <div class="header-container">
             <div class="logo">
                 <img src="{{ asset('assets/clinica_logo.png') }}" alt="Clínica Miel">
             </div>
@@ -31,7 +47,9 @@
             <div class="user-icon">
                 <img src="{{ asset('assets/profile.png') }}" alt="Usuario">
             </div>
-        </header>
+        </div>
+    </header>
+    <div class="container @yield('container-class')">
 
         @yield('content')
 

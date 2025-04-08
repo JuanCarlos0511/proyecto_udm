@@ -1,11 +1,17 @@
 /* Header Styles */
 header.main-header {
+    width: 100%;
+    background-color: transparent;
+    border-bottom: 1px solid rgba(33, 36, 103, 0.2);
+}
+
+.header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-    background-color: transparent;
-    border-bottom: 1px solid rgba(0, 102, 204, 0.2);
+    padding: 15px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .logo img {
@@ -28,7 +34,7 @@ header.main-header {
 }
 
 .main-nav a:hover, .main-nav a.active {
-    color: #0066cc;
+    color: #212467;
 }
 
 .main-nav a:after {
@@ -38,7 +44,7 @@ header.main-header {
     height: 2px;
     bottom: 0;
     left: 0;
-    background-color: #0066cc;
+    background-color: #212467;
     transition: width 0.3s;
 }
 
@@ -82,13 +88,13 @@ header.main-header {
     left: 0;
     background-color: white;
     min-width: 180px;
-    box-shadow: 0 0 10px rgba(0, 102, 204, 0.2);
+    box-shadow: 0 0 10px rgba(33, 36, 103, 0.2);
     border-radius: 4px;
     padding: 10px 0;
     z-index: 1000;
     display: none;
     margin-top: 5px;
-    border: 1px solid rgba(0, 102, 204, 0.2);
+    border: 1px solid rgba(33, 36, 103, 0.2);
 }
 
 .dropdown-nav:hover .dropdown-content {
@@ -105,7 +111,7 @@ header.main-header {
 
 .dropdown-content a:hover {
     background-color: #f1f8ff;
-    color: #0066cc;
+    color: #212467;
 }
 
 .dropdown-content a:after {
@@ -118,5 +124,5 @@ header.main-header {
     border-radius: 50%;
     cursor: pointer;
     object-fit: cover;
-    border: 2px solid #0066cc;
+    border: 2px solid #212467;
 }

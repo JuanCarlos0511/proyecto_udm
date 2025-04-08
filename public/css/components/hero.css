@@ -7,7 +7,7 @@
 .hero h1 {
     font-size: 2.5rem;
     margin-bottom: 20px;
-    color: #0066cc; /* Changed to blue */
+    color: #212467; 
 }
 
 .hero p {
@@ -42,11 +42,11 @@
 }
 
 .appointment-card.clinic {
-    border-top: 5px solid #0066cc;
+    border-top: 5px solid #212467;
 }
 
 .appointment-card.home {
-    border-top: 5px solid #0066cc;
+    border-top: 5px solid #212467;
 }
 
 .appointment-card .icon-container {
@@ -61,11 +61,11 @@
 }
 
 .appointment-card.clinic .icon-container {
-    color: #0066cc;
+    color: #212467;
 }
 
 .appointment-card.home .icon-container {
-    color: #0066cc;
+    color: #212467;
 }
 
 .appointment-card .icon-container i {
@@ -94,21 +94,21 @@
 }
 
 .appointment-card.clinic .appointment-btn {
-    background-color: #0066cc;
+    background-color: #212467;
     color: white;
 }
 
 .appointment-card.clinic .appointment-btn:hover {
-    background-color: #0055aa;
+    background-color: #33325C;
 }
 
 .appointment-card.home .appointment-btn {
-    background-color: #0066cc;
+    background-color: #212467;
     color: white;
 }
 
 .appointment-card.home .appointment-btn:hover {
-    background-color: #0055aa;
+    background-color: #33325C;
 }
 
 /* Attribution link */
@@ -128,6 +128,6 @@
 }
 
 .attribution-link:hover {
-    color: #0066cc;
+    color: #443B79;
     text-decoration: underline;
 }
