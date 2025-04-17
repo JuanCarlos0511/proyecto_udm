@@ -159,4 +159,49 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = '/appointment';
         });
     }
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-input');
+    const doctorsList = document.querySelectorAll('.doctor-item');
+
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        
+        doctorsList.forEach(doctor => {
+            const doctorName = doctor.querySelector('.doctor-name').textContent.toLowerCase();
+            if (doctorName.includes(searchTerm)) {
+                doctor.style.display = '';
+            } else {
+                doctor.style.display = 'none';
+            }
+        });
+    });
+
+    // Add doctor button
+    const addDoctorBtn = document.querySelector('.btn-add-doctor');
+    addDoctorBtn.addEventListener('click', function() {
+        // TODO: Implement add doctor modal/form
+        console.log('Add doctor clicked');
+    });
+
+    // Action buttons
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const doctorItem = e.target.closest('.doctor-item');
+            const doctorName = doctorItem.querySelector('.doctor-name').textContent;
+            
+            if (this.classList.contains('view-btn')) {
+                // TODO: Implement view doctor details
+                console.log('View doctor:', doctorName);
+            } else if (this.classList.contains('delete-btn')) {
+                if (confirm(`¿Estás seguro de que deseas eliminar a ${doctorName}?`)) {
+                    // TODO: Implement delete doctor
+                    console.log('Delete doctor:', doctorName);
+                }
+            } else if (this.classList.contains('edit-btn')) {
+                // TODO: Implement edit doctor modal/form
+                console.log('Edit doctor:', doctorName);
+            }
+        });
+    });
 });
