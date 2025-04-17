@@ -6,6 +6,26 @@ Route::get('/', function () {
     return view('index');
 });
 
+Route::get('/login', function () {
+    return view('login');
+});
+
+Route::get('/register', function () {
+    return view('register');
+});
+
+Route::get('/profile', function () {
+    return view('profile');
+});
+
+Route::get('/settings', function () {
+    return view('settings');
+});
+
+Route::get('/logout', function () {
+    return view('logout');
+});
+
 Route::get('/admin', function () {
     return view('admin');
 });
