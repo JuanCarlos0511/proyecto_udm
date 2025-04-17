@@ -1,0 +1,115 @@
+/* History Page Styles */
+.history-view {
+    padding: 20px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.pdf-report-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.time-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.time-filter label {
+    font-weight: 500;
+}
+
+.time-filter-select {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
+    min-width: 150px;
+}
+
+.btn-generate-pdf {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s;
+}
+
+.btn-generate-pdf:hover {
+    background-color: #c82333;
+}
+
+.history-table {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.history-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    background-color: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.history-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.history-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* PDF Report Loading State */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.3s;
+}
+
+.loading-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #dc3545;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

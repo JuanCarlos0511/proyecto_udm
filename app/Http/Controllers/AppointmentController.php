@@ -9,7 +9,7 @@ class AppointmentController extends Controller
 {
     public function index()
     {
-        $appointments = Appointment::with(['patient', 'doctor'])->get();
+        $appointments = Appointment::with('user')->get();
         return response()->json($appointments);
     }
 
@@ -17,9 +17,11 @@ class AppointmentController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
+            'user_id' => 'required|exists:users,id',
             'subject' => 'required|string|max:255',
-            'status' => 'required|in:scheduled,completed,cancelled',
-            'modality' => 'required|in:in-person,home-visit',
+            'status' => 'required|in:Solicitado,Agendado,Completado,Cancelado',
+            'modality' => 'required|in:Consultorio,Domicilio',
+            'price' => 'required|numeric|min:0'
         ]);
 
         $appointment = Appointment::create($request->all());
@@ -28,18 +30,18 @@ class AppointmentController extends Controller
 
     public function show(Appointment $appointment)
     {
-        return response()->json($appointment->load(['patient', 'doctor']));
+        return response()->json($appointment->load('user'));
     }
 
     public function update(Request $request, Appointment $appointment)
     {
         $request->validate([
             'date' => 'date',
-            'patient_id' => 'exists:patients,id',
-            'doctor_id' => 'exists:doctors,id',
+            'user_id' => 'exists:users,id',
             'subject' => 'string|max:255',
-            'status' => 'in:scheduled,completed,cancelled',
-            'modality' => 'in:in-person,home-visit',
+            'status' => 'in:Solicitado,Agendado,Completado,Cancelado',
+            'modality' => 'in:Consultorio,Domicilio',
+            'price' => 'numeric|min:0'
         ]);
 
         $appointment->update($request->all());

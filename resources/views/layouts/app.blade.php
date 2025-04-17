@@ -44,8 +44,32 @@
                 <a href="{{ url('seguimiento') }}" class="{{ request()->is('seguimiento*') ? 'active' : '' }}">Seguimiento</a>
                 <a href="{{ url('doctor-history') }}" class="{{ request()->is('doctor-history*') ? 'active' : '' }}">Historial Pacientes</a>
             </nav>
-            <div class="user-icon">
+            <div class="user-icon profile-dropdown">
                 <img src="{{ asset('assets/profile.png') }}" alt="Usuario">
+                <div class="profile-dropdown-content">
+                    <div class="dropdown-menu-items">
+                        @auth
+                            {{-- Options for authenticated users --}}
+                            <a href="{{ url('perfil') }}">
+                                <i class="fas fa-user"></i> Perfil
+                            </a>
+                            <a href="{{ url('ajustes') }}">
+                                <i class="fas fa-cog"></i> Ajustes
+                            </a>
+                            <a href="{{ url('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a>
+                        @else
+                            {{-- Options for guest users --}}
+                            <a href="{{ url('login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                            </a>
+                            <a href="{{ url('ajustes') }}">
+                                <i class="fas fa-cog"></i> Ajustes
+                            </a>
+                        @endauth
+                    </div>
+                </div>
             </div>
         </div>
     </header>
