@@ -26,9 +26,13 @@ Route::get('/logout', function () {
     return view('logout');
 });
 
+// Admin routes
 Route::get('/admin', function () {
-    return view('admin');
+    return redirect('/dashboard');
 });
+
+Route::get('/dashboard', 'App\Http\Controllers\Admin\DashboardController@index');
+Route::get('/dashboard/refresh', 'App\Http\Controllers\Admin\DashboardController@refresh');
 
 // Add routes for all other screens
 Route::get('/appointment', function () {

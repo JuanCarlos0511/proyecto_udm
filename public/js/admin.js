@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Admin layout functionality
+    initAdminLayout();
+    
+    
     // Sample data for active appointments
     const activeAppointmentsData = [
         {
@@ -204,4 +208,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Admin layout initialization
+    function initAdminLayout() {
+        // Handle dropdown menus
+        const dropdowns = document.querySelectorAll('.dropdown');
+        dropdowns.forEach(dropdown => {
+            dropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const menu = this.querySelector('.dropdown-menu');
+                if (menu) {
+                    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                }
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        });
+
+        // Handle sidebar collapse on mobile
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                const sidebar = document.querySelector('.admin-sidebar');
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        // Initialize data tables if present
+        if (typeof DataTable !== 'undefined' && document.querySelector('.admin-table')) {
+            new DataTable('.admin-table', {
+                paging: true,
+                searching: true,
+                ordering: true
+            });
+        }
+    }
 });
