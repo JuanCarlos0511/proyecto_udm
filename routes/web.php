@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
@@ -12,9 +13,12 @@ Route::get('/login', function () {
     return view('login');
 });
 
-Route::get('/register', function () {
-    return view('register');
-});
+// Rutas de registro y verificación
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
+Route::get('/verify', [RegisterController::class, 'showVerificationForm'])->name('verification.show');
+Route::post('/verify', [RegisterController::class, 'verify'])->name('verification.verify');
+Route::get('/verify/resend', [RegisterController::class, 'resendCode'])->name('verification.resend');
 
 // Rutas de perfil (protegidas con autenticación)
 Route::middleware(['auth'])->group(function () {

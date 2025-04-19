@@ -6,6 +6,108 @@ body.auth-page {
     overflow: hidden;
 }
 
+/* Estilos para las etapas de registro */
+.stage-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stage-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stage-dot.active {
+    background-color: #212467;
+    transform: scale(1.2);
+}
+
+.register-stage {
+    display: none;
+    opacity: 0;
+    transform: translateX(50px);
+    transition: all 0.5s ease;
+}
+
+.register-stage.active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+    animation: fadeInRight 0.5s ease forwards;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.stage-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.stage-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.next-stage-btn, .prev-stage-btn {
+    background-color: #5a62b1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.next-stage-btn:hover, .prev-stage-btn:hover {
+    background-color: #444a8c;
+}
+
+.skip-btn {
+    background-color: transparent;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.skip-btn:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Estilos para el formulario en filas */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-group.half {
+    flex: 1;
+}
+
 .auth-page .container {
     padding: 0;
     margin: 0;
@@ -270,6 +372,34 @@ body.auth-page {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Animación para el desplazamiento del panel izquierdo */
+.slide-left {
+    animation: slideLeft 0.8s ease forwards;
+}
+
+@keyframes slideLeft {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-30%);
+    }
+}
+
+/* Animación para el desplazamiento del panel derecho */
+.expand-right {
+    animation: expandRight 0.8s ease forwards;
+}
+
+@keyframes expandRight {
+    from {
+        flex: 1;
+    }
+    to {
+        flex: 1.3;
     }
 }
 
