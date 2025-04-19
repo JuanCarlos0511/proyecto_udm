@@ -1,0 +1,82 @@
+/* Logout Modal Styles */
+.logout-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.logout-modal {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.logout-modal h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.logout-modal p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.logout-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.logout-btn {
+    background-color: #3f51b5; /* Mismo color azul del login */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+}
+
+.logout-btn:hover {
+    background-color: #303f9f; /* Color más oscuro al hacer hover, igual que en login */
+}
+
+.cancel-btn {
+    background-color: white;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+    display: block;
+}
+
+.cancel-btn:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Styles */
+@media (max-width: 480px) {
+    .logout-modal {
+        width: 90%;
+        padding: 20px;
+    }
+}

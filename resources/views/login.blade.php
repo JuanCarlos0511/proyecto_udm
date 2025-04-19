@@ -32,10 +32,10 @@
             </div>
             
             <div class="social-login-buttons">
-                <button class="social-login-btn google-btn">
+                <a href="{{ route('auth.google') }}" class="social-login-btn google-btn">
                     <img src="{{ asset('assets/google-icon.png') }}" alt="Google">
                     Continuar con Google
-                </button>
+                </a>
                 
                 <button class="social-login-btn apple-btn">
                     <img src="{{ asset('assets/apple-icon.png') }}" alt="Apple">
