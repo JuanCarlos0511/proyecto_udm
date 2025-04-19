@@ -12,6 +12,7 @@
     
     <!-- UI Components -->
     <link rel="stylesheet" href="{{ asset('css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/profile-indicator.css') }}">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -150,8 +151,15 @@
                             <span class="user-name">Dr. García</span>
                         </div>
                         <div class="dropdown-menu">
-                            <a href="{{ url('perfil') }}" class="dropdown-item">
+                            <a href="{{ route('profile') }}" class="dropdown-item profile-link">
                                 <i class="fas fa-user"></i> Mi Perfil
+                                @auth
+                                    @if(!isset($isProfileFullyComplete) || !$isProfileFullyComplete)
+                                    <span class="profile-incomplete" title="Completa tu información de perfil para mejorar tu experiencia.">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                    @endif
+                                @endauth
                             </a>
                             <a href="{{ url('ajustes') }}" class="dropdown-item">
                                 <i class="fas fa-cog"></i> Configuración

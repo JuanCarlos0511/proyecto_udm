@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('index');
@@ -15,8 +16,10 @@ Route::get('/register', function () {
     return view('register');
 });
 
-Route::get('/profile', function () {
-    return view('profile');
+// Rutas de perfil (protegidas con autenticación)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::get('/settings', function () {

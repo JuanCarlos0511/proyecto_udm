@@ -18,10 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Toggle dropdown on click
         dropdownElement.addEventListener('click', function(e) {
+            // Si el clic fue en un enlace dentro del menú desplegable, permitir la navegación normal
             if (e.target.closest(contentSelector + ' a')) {
-                // Don't toggle if clicking a link in the dropdown
                 return;
             }
+            
+            // Si el clic fue en cualquier otra parte del dropdown, alternar la visibilidad
+            e.preventDefault(); // Prevenir comportamiento predeterminado
             
             const isVisible = dropdownContent.style.display === 'block';
             dropdownContent.style.display = isVisible ? 'none' : 'block';

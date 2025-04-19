@@ -1,0 +1,72 @@
+.profile-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-incomplete {
+    margin-left: 8px;
+    color: #f0ad4e; /* Color amarillo para advertencia */
+    animation: pulse 2s infinite;
+}
+
+.profile-optional-missing {
+    margin-left: 8px;
+    color: #5bc0de; /* Color azul claro para información */
+    animation: pulse 3s infinite;
+}
+
+.profile-incomplete i,
+.profile-optional-missing i {
+    font-size: 14px;
+}
+
+/* Tooltip personalizado al pasar el cursor */
+.profile-incomplete:hover::after,
+.profile-optional-missing:hover::after {
+    content: attr(title);
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Animación de pulso para llamar la atención */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Estilos específicos para el menú desplegable en el layout principal */
+.dropdown-menu-items .profile-incomplete,
+.dropdown-menu-items .profile-optional-missing {
+    margin-left: 8px;
+}
+
+/* Estilos específicos para el menú de administración */
+.dropdown-item.profile-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.dropdown-item .profile-incomplete,
+.dropdown-item .profile-optional-missing {
+    margin-left: 8px;
+}

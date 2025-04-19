@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/components/buttons.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/specialties.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/appointments.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/profile-indicator.css') }}">
     
     <!-- Page-specific styles -->
     <link rel="stylesheet" href="{{ asset('css/pages/admin.css') }}">
@@ -50,8 +51,15 @@
                     <div class="dropdown-menu-items">
                         @auth
                             {{-- Options for authenticated users --}}
-                            <a href="{{ url('perfil') }}">
+                            <a href="{{ route('profile') }}" class="profile-link">
                                 <i class="fas fa-user"></i> Perfil
+                                @auth
+                                    @if(!isset($isProfileFullyComplete) || !$isProfileFullyComplete)
+                                    <span class="profile-incomplete" title="Completa tu información de perfil para mejorar tu experiencia.">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                    @endif
+                                @endauth
                             </a>
                             <a href="{{ url('ajustes') }}">
                                 <i class="fas fa-cog"></i> Ajustes

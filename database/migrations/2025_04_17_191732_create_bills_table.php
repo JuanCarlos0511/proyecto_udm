@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('bills', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('rfc')
-            $table->string('codigo_postal')
+            $table->string('rfc');
+            $table->string('codigo_postal');
             $table->boolean('cuenta_con_seguro')->default(false);
-            $table->string('regimen_fiscal')
-            $table->string('cfdi')
+            $table->string('regimen_fiscal');
+            $table->string('cfdi');
             $table->enum('status', ['pendiente', 'realizada'])->default('pendiente');
             $table->timestamps();
         });
