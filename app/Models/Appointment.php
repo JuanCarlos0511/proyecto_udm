@@ -22,6 +22,10 @@ class Appointment extends Model
         'status',
         'modality',
         'price',
+        'diagnosis',
+        'referred_by',
+        'contact_name',
+        'contact_relationship'
     ];
 
     /**

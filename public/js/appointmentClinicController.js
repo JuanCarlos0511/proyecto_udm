@@ -15,6 +15,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const padecimientoRadios = document.querySelectorAll('input[name="padecimiento"]');
     const padecimientoDetails = document.getElementById('padecimientoDetails');
 
+    // Check if user is authenticated and populate form
+    const isAuthenticated = document.getElementById('isAuthenticated')?.value === "1";
+    if (isAuthenticated) {
+        const userData = JSON.parse(document.getElementById('userData').value);
+        // Populate form fields
+        document.getElementById('nombre').value = userData.name;
+        document.getElementById('edad').value = userData.age;
+        document.getElementById('email').value = userData.email;
+        document.getElementById('telefono').value = userData.phoneNumber;
+        document.getElementById('contact_name').value = userData.emergency_contact_name || '';
+        document.getElementById('contact_phone').value = userData.emergency_contact_phone || '';
+        document.getElementById('contact_relationship').value = userData.emergency_contact_relationship || '';
+    }
+
     // Current date
     const currentDate = new Date();
     let currentYear = currentDate.getFullYear();
@@ -55,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/';
     });
 
-    submitButton.addEventListener('click', function() {
+    submitButton.addEventListener('click', async function() {
         // Validate form
         const form = document.getElementById('appointmentClinicForm');
         const formElements = form.elements;
@@ -76,8 +90,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (isValid) {
-            // Show confirmation modal
-            confirmationModal.style.display = 'flex';
+            try {
+                const appointmentDate = new Date(selectedDate);
+                appointmentDate.setHours(selectedTimeSlot, 0, 0);
+
+                // Prepare appointment data
+                const appointmentData = {
+                    date: appointmentDate.toISOString(),
+                    subject: document.getElementById('especialidad').value,
+                    modality: 'Consultorio',
+                    status: 'Solicitado',
+                    diagnosis: document.getElementById('diagnosis').value,
+                    referred_by: document.getElementById('referred_by').value,
+                    price: 0,
+                    user: {
+                        name: document.getElementById('nombre').value,
+                        age: document.getElementById('edad').value,
+                        email: document.getElementById('email').value,
+                        phoneNumber: document.getElementById('telefono').value,
+                        emergency_contact_name: document.getElementById('contact_name').value,
+                        emergency_contact_phone: document.getElementById('contact_phone').value,
+                        emergency_contact_relationship: document.getElementById('contact_relationship').value
+                    }
+                };
+
+                // Get CSRF token
+                const token = document.querySelector('input[name="_token"]').value;
+
+                // Send data to server
+                const response = await fetch('/api/appointments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: JSON.stringify(appointmentData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al guardar la cita');
+                }
+
+                const result = await response.json();
+                console.log('Cita guardada:', result);
+
+                // Show confirmation modal
+                confirmationModal.style.display = 'flex';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Hubo un error al agendar la cita. Por favor intente nuevamente.');
+            }
         }
     });
 

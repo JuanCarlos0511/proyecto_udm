@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AppointmentController;
 
 Route::get('/', function () {
     return view('index');
@@ -51,10 +52,7 @@ Route::get('/appointment', function () {
 });
 
 // New appointment routes
-Route::get('/appointment-clinic', function () {
-    return view('appointment-clinic');
-});
-
+Route::get('/appointment-clinic', [AppointmentController::class, 'create'])->name('appointment.clinic');
 Route::get('/appointment-home', function () {
     return view('appointment-home');
 });
