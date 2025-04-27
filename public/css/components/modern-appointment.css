@@ -1,0 +1,490 @@
+/* Modern Appointment Form Styles */
+:root {
+    --primary-color: #1a5f7a; /* Azul petróleo */
+    --secondary-color: #2d6a4f; /* Verde oscuro */
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+/* Container Layout */
+.modern-appointment-container {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    background-color: #fff;
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin: 40px auto;
+    max-width: 1200px;
+}
+
+.form-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.datetime-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background-color: #f9f9f9;
+    border-radius: var(--border-radius);
+    padding: 30px;
+}
+
+/* Header Styles */
+.modern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.modern-header .logo img {
+    height: 40px;
+}
+
+.modern-header .menu {
+    display: flex;
+    gap: 24px;
+}
+
+.modern-header .menu a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.modern-header .menu a:hover {
+    color: var(--primary-color);
+}
+
+/* Form Elements */
+.modern-form-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.modern-form-subtitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 20px;
+    margin-bottom: 16px;
+}
+
+.modern-form-group {
+    margin-bottom: 20px;
+}
+
+.modern-form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.modern-form-row .modern-form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.modern-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.modern-form-group input,
+.modern-form-group select,
+.modern-form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-family: inherit;
+    font-size: 16px;
+    transition: var(--transition);
+}
+
+.modern-form-group input:focus,
+.modern-form-group select:focus,
+.modern-form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(26, 95, 122, 0.1);
+}
+
+.modern-form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Radio Buttons */
+.modern-radio-group {
+    display: flex;
+    gap: 20px;
+    margin-top: 8px;
+}
+
+.modern-radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.modern-radio-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Date and Time Selection */
+.date-time-section {
+    margin-bottom: 30px;
+}
+
+.date-time-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.date-time-buttons {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.date-select-btn,
+.time-select-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 180px;
+}
+
+.date-select-btn:hover,
+.time-select-btn:hover {
+    border-color: var(--primary-color);
+}
+
+.date-select-btn i,
+.time-select-btn i {
+    color: var(--primary-color);
+}
+
+.selected-date-time {
+    background-color: #fff;
+    padding: 16px;
+    border-radius: var(--border-radius);
+    margin-top: 20px;
+    min-height: 120px;
+}
+
+.selected-date-time p {
+    margin: 4px 0;
+    font-size: 16px;
+}
+
+.selected-date-time .label {
+    font-weight: 600;
+    color: #555;
+}
+
+/* Calendar Popup */
+.calendar-popup,
+.time-popup {
+    position: absolute;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 20px;
+    z-index: 100;
+    display: none;
+}
+
+.calendar-popup.active,
+.time-popup.active {
+    display: block;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.calendar-nav {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #555;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.calendar-days div {
+    font-weight: 600;
+    font-size: 14px;
+    color: #777;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-day {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.calendar-day:hover {
+    background-color: #f0f0f0;
+}
+
+.calendar-day.selected {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.calendar-day.disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Time Slots */
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.time-slot {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.time-slot:hover {
+    border-color: var(--primary-color);
+}
+
+.time-slot.selected {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+.time-slot.disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Action Buttons */
+.modern-form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.cancel-btn {
+    padding: 12px 24px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    color: #555;
+    min-width: 120px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cancel-btn:hover {
+    background-color: #eee;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.schedule-btn {
+    padding: 12px 32px;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    min-width: 180px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-btn:hover {
+    background-color: #14475c;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Confirmation Modal */
+.modern-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.modern-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modern-modal-content {
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: var(--box-shadow);
+}
+
+.modern-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.modern-modal-header i {
+    color: #4CAF50;
+    font-size: 24px;
+}
+
+.modern-modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modern-modal p {
+    margin-bottom: 24px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.modern-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.modern-modal-buttons button {
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.home-btn {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #555;
+    min-width: 120px;
+}
+
+.home-btn:hover {
+    background-color: #eee;
+}
+
+.history-btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    min-width: 120px;
+}
+
+.history-btn:hover {
+    background-color: #14475c;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .modern-appointment-container {
+        flex-direction: column;
+        padding: 30px 20px;
+    }
+    
+    .time-slots {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .modern-form-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .date-time-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .time-slots {
+        grid-template-columns: 1fr;
+    }
+}
