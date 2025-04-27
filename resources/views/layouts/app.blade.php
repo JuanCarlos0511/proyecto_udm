@@ -41,6 +41,7 @@
                     </div>
                 </div>
                 <a href="{{ url('history') }}" class="{{ request()->is('history*') ? 'active' : '' }}">Historial</a>
+                <a href="{{ route('about') }}" class="{{ request()->is('sobre-nosotros*') ? 'active' : '' }}">Sobre Nosotros</a>
                 <a href="{{ url('admin') }}" class="{{ request()->is('admin*') ? 'active' : '' }}">Admin</a>
                 <a href="{{ url('seguimiento') }}" class="{{ request()->is('seguimiento*') ? 'active' : '' }}">Seguimiento</a>
                 <a href="{{ url('doctor-history') }}" class="{{ request()->is('doctor-history*') ? 'active' : '' }}">Historial Pacientes</a>

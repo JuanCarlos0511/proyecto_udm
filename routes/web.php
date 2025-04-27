@@ -10,6 +10,10 @@ Route::get('/', function () {
     return view('index');
 });
 
+Route::get('/sobre-nosotros', function () {
+    return view('about');
+})->name('about');
+
 Route::get('/login', function () {
     return view('login');
 });
