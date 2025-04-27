@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const goToHistoryBtn = document.getElementById('goToHistory');
     const padecimientoRadios = document.querySelectorAll('input[name="padecimiento"]');
     const padecimientoDetails = document.getElementById('padecimientoDetails');
-    const appointmentForm = document.getElementById('modernAppointmentForm');
+    const appointmentForm = document.getElementById('modernAppointmentHomeForm');
     const backToHomeBtn = document.getElementById('backToHome');
 
     // State
@@ -207,10 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
         timeSlots.innerHTML = '';
         
         // Example time slots (9:00 AM to 5:00 PM)
+        // Para citas a domicilio, ofrecemos horarios más limitados
         const availableTimeSlots = [
-            '9:00', '9:30', '10:00', '10:30', '11:00', '11:30', 
-            '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', 
-            '15:00', '15:30', '16:00', '16:30', '17:00'
+            '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'
         ];
         
         // Render time slots
@@ -269,18 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('edad').value = userData.age;
         document.getElementById('email').value = userData.email;
         document.getElementById('telefono').value = userData.phoneNumber;
-        
-        if (userData.emergency_contact_name) {
-            document.getElementById('contact_name').value = userData.emergency_contact_name;
-        }
-        
-        if (userData.emergency_contact_phone) {
-            document.getElementById('contact_phone').value = userData.emergency_contact_phone;
-        }
-        
-        if (userData.emergency_contact_relationship) {
-            document.getElementById('contact_relationship').value = userData.emergency_contact_relationship;
-        }
     }
 
     function submitAppointment() {
@@ -297,8 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function validateForm() {
         // Basic validation
         const requiredFields = [
-            'nombre', 'edad', 'email', 'telefono', 'contact_name', 
-            'contact_relationship', 'contact_phone', 'especialidad'
+            'nombre', 'edad', 'email', 'telefono', 'direccion', 'especialidad'
         ];
         
         let isValid = true;

@@ -1,125 +1,175 @@
 @extends('layouts.app')
 
-@section('title', 'Cita a Domicilio')
+@section('title', 'Agendar Cita')
 
-@section('container-class', 'appointment-form')
+@section('extra-css')
+    <link rel="stylesheet" href="{{ asset('css/components/modern-appointment.css') }}">
+@endsection
+
+@section('container-class', 'modern-appointment-page')
 
 @section('content')
     <div class="navigation-buttons">
         <button id="backToHome" class="back-btn"><i class="fas fa-arrow-left"></i> Regresar</button>
     </div>
 
-    <h1>AGENDAR CITA A DOMICILIO</h1>
-    
-    <form id="appointmentHomeForm">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="nombre">Nombre: (Autocompleta si está registrado)</label>
-                <input type="text" id="nombre" name="nombre" required>
-            </div>
-            <div class="form-group">
-                <label for="telefono">Teléfono:</label>
-                <input type="tel" id="telefono" name="telefono" required>
-            </div>
-        </div>
+    <div class="modern-appointment-container">
+        <!-- Columna 1: Formulario Principal -->
+        <div class="form-column">
+            <h2 class="modern-form-title">Agendar Cita a Domicilio</h2>
+            
+            <form id="modernAppointmentHomeForm">
+                @csrf
+                <input type="hidden" id="isAuthenticated" value="{{ Auth::check() }}">
+                @if(Auth::check())
+                    <input type="hidden" id="userData" value="{{ json_encode([
+                        'name' => Auth::user()->name,
+                        'age' => Auth::user()->age,
+                        'email' => Auth::user()->email,
+                        'phoneNumber' => Auth::user()->phoneNumber,
+                    ]) }}">
+                @endif
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="edad">Edad:</label>
-                <input type="number" id="edad" name="edad" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Correo electrónico:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-        </div>
+                <!-- Información Personal -->
+                <div class="modern-form-group">
+                    <label for="nombre">Nombre completo {{ Auth::check() ? '(Autenticado)' : '' }}</label>
+                    <input type="text" id="nombre" name="nombre" required {{ Auth::check() ? 'readonly' : '' }}>
+                </div>
 
-        <div class="form-group">
-            <label for="direccion">Dirección completa:</label>
-            <input type="text" id="direccion" name="direccion" required placeholder="Calle, número, colonia, código postal">
-            <small>Asegúrese de proporcionar una dirección exacta para el servicio a domicilio</small>
+                <div class="modern-form-row">
+                    <div class="modern-form-group">
+                        <label for="edad">Edad</label>
+                        <input type="number" id="edad" name="edad" required {{ Auth::check() ? 'readonly' : '' }}>
+                    </div>
+                    <div class="modern-form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono" required {{ Auth::check() ? 'readonly' : '' }}>
+                    </div>
+                </div>
+
+                <div class="modern-form-group">
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" id="email" name="email" required {{ Auth::check() ? 'readonly' : '' }}>
+                </div>
+
+                <div class="modern-form-group">
+                    <label for="direccion">Dirección completa</label>
+                    <input type="text" id="direccion" name="direccion" required placeholder="Calle, número, colonia, código postal">
+                    <small>Asegúrese de proporcionar una dirección exacta para el servicio a domicilio</small>
+                </div>
+                
+                <div class="modern-form-group">
+                    <label for="referencias">Referencias de ubicación (opcional)</label>
+                    <textarea id="referencias" name="referencias" rows="2" placeholder="Ej: Casa blanca de dos pisos, portón negro, frente a farmacia"></textarea>
+                </div>
+            </form>
         </div>
         
-        <div class="form-group">
-            <label for="referencias">Referencias de ubicación (opcional):</label>
-            <textarea id="referencias" name="referencias" rows="2" placeholder="Ej: Casa blanca de dos pisos, portón negro, frente a farmacia"></textarea>
-        </div>
+        <!-- Columna 2: Detalles adicionales y Selección de Fecha/Hora -->
+        <div class="datetime-column">
+            <h2 class="modern-form-title">Detalles y Programación</h2>
+            
+            <!-- Continuación del formulario -->
+            <div class="modern-form-group">
+                <label for="especialidad">Especialidad requerida</label>
+                <select id="especialidad" name="especialidad" required>
+                    <option value="">Seleccione una especialidad</option>
+                    <option value="electroterapia">Electroterapia</option>
+                    <option value="hidroterapia">Hidroterapia</option>
+                    <option value="mecanoterapia">Mecanoterapia</option>
+                    <option value="atencion-integral">Atención Integral</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label for="especialidad">Especialidad requerida:</label>
-            <select id="especialidad" name="especialidad" required>
-                <option value="">Seleccione una especialidad</option>
-                <option value="electroterapia">Electroterapia</option>
-                <option value="hidroterapia">Hidroterapia</option>
-                <option value="mecanoterapia">Mecanoterapia</option>
-                <option value="atencion-integral">Atención Integral</option>
-            </select>
-        </div>
+            <div class="modern-form-group">
+                <label>¿Cuenta con algún padecimiento o discapacidad?</label>
+                <div class="modern-radio-group">
+                    <div class="modern-radio-option">
+                        <input type="radio" id="si" name="padecimiento" value="si">
+                        <label for="si">Sí</label>
+                    </div>
+                    <div class="modern-radio-option">
+                        <input type="radio" id="no" name="padecimiento" value="no" checked>
+                        <label for="no">No</label>
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label>Seleccione una fecha y hora:</label>
-            <div class="calendar-container">
-                <div class="calendar" id="calendar">
-                    <!-- Calendar will be dynamically populated by JavaScript -->
-                    <div class="calendar-header">
-                        <button id="prevMonth" class="calendar-nav"><i class="fas fa-chevron-left"></i></button>
-                        <h3 id="currentMonth">Abril de 2025</h3>
-                        <button id="nextMonth" class="calendar-nav"><i class="fas fa-chevron-right"></i></button>
+            <div class="modern-form-group" id="padecimientoDetails" style="display: none;">
+                <label for="detalles">Por favor, describa su padecimiento:</label>
+                <textarea id="detalles" name="detalles" rows="4"></textarea>
+            </div>
+
+            <div class="modern-form-group">
+                <label>Nota importante:</label>
+                <p class="note">El servicio a domicilio tiene un costo adicional dependiendo de la ubicación. Se le informará el costo total antes de confirmar la cita.</p>
+            </div>
+            
+            <!-- Selección de Fecha y Hora -->
+            <h3 class="modern-form-subtitle">Selección de Fecha y Hora</h3>
+            
+            <div class="date-time-section">
+                <div class="date-time-buttons">
+                    <button id="dateSelectBtn" class="date-select-btn">
+                        <i class="far fa-calendar-alt"></i> Seleccionar Fecha
+                    </button>
+                    <button id="timeSelectBtn" class="time-select-btn" disabled>
+                        <i class="far fa-clock"></i> Seleccionar Hora
+                    </button>
+                </div>
+                
+                <div class="selected-date-time">
+                    <div style="display: none;">
+                        <p><span class="label">Fecha seleccionada:</span></p>
+                        <p id="selectedDate"></p>
                     </div>
-                    <!-- Sample calendar layout -->
-                    <div class="calendar-days">
-                        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
-                        <div>Jue</div><div>Vie</div><div>Sáb</div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid">
-                        <!-- Calendar grid will be populated by JS -->
+                    <div style="display: none;">
+                        <p><span class="label">Hora seleccionada:</span></p>
+                        <p id="selectedTime"></p>
                     </div>
                 </div>
             </div>
             
-            <!-- Time selection container -->
-            <div id="timeSelectionContainer" style="display: none;">
-                <label>Seleccione una hora disponible:</label>
-                <div class="time-slots-container" id="timeSlots">
-                    <!-- Time slots will be populated by JS -->
+            <!-- Calendario emergente -->
+            <div id="calendarPopup" class="calendar-popup">
+                <div class="calendar-header">
+                    <button id="prevMonth" class="calendar-nav"><i class="fas fa-chevron-left"></i></button>
+                    <h3 id="currentMonth">Abril de 2025</h3>
+                    <button id="nextMonth" class="calendar-nav"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="calendar-days">
+                    <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
+                    <div>Jue</div><div>Vie</div><div>Sáb</div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Se llenará dinámicamente con JavaScript -->
                 </div>
             </div>
-        </div>
-
-        <div class="form-group">
-            <label>¿Cuenta con algún padecimiento o discapacidad?</label>
-            <div class="radio-group">
-                <input type="radio" id="si" name="padecimiento" value="si">
-                <label for="si">Sí</label>
-                <input type="radio" id="no" name="padecimiento" value="no" checked>
-                <label for="no">No</label>
+            
+            <!-- Selector de hora emergente -->
+            <div id="timePopup" class="time-popup">
+                <h3>Seleccione una hora disponible</h3>
+                <div class="time-slots" id="timeSlots">
+                    <!-- Se llenará dinámicamente con JavaScript -->
+                </div>
+            </div>
+            
+            <div class="modern-form-actions">
+                <button type="button" id="cancelBtn" class="cancel-btn">Cancelar</button>
+                <button type="button" id="scheduleBtn" class="schedule-btn">Agendar Cita</button>
             </div>
         </div>
+    </div>
 
-        <div class="form-group" id="padecimientoDetails" style="display: none;">
-            <label for="detalles">Por favor, describa su padecimiento:</label>
-            <textarea id="detalles" name="detalles" rows="4"></textarea>
-        </div>
-
-        <div class="form-group">
-            <label>Nota importante:</label>
-            <p class="note">El servicio a domicilio tiene un costo adicional dependiendo de la ubicación. Se le informará el costo total antes de confirmar la cita.</p>
-        </div>
-
-        <div class="form-actions">
-            <button type="button" id="cancelar" class="cancel-btn">Cancelar</button>
-            <button type="button" id="solicitar" class="solicitar-btn">Solicitar Cita</button>
-        </div>
-    </form>
-
-    <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-check-circle"></i> Cita Agendada</h3>
+    <!-- Modal de confirmación -->
+    <div id="confirmationModal" class="modern-modal">
+        <div class="modern-modal-content">
+            <div class="modern-modal-header">
+                <i class="fas fa-check-circle"></i>
+                <h3>Cita Agendada</h3>
             </div>
             <p>Tu solicitud de cita a domicilio ha sido enviada y se ha agregado a tu historial</p>
-            <div class="modal-buttons">
+            <div class="modern-modal-buttons">
                 <button id="goToHome" class="home-btn">Ir a inicio</button>
                 <button id="goToHistory" class="history-btn">Ver historial</button>
             </div>
@@ -128,5 +178,5 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('js/appointmentHomeController.js') }}"></script>
+    <script src="{{ asset('js/modernAppointmentHomeController.js') }}"></script>
 @endsection
