@@ -35,87 +35,79 @@
                 <div class="sidebar-section">
                     <h3 class="section-title">Personal</h3>
                     <ul class="sidebar-menu">
-                        <li class="sidebar-menu-item {{ request()->is('admin/dashboard*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/dashboard') }}">
+                        <li class="sidebar-menu-item {{ request()->is('admin/tablero*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/tablero') }}">
                                 <i class="fas fa-tachometer-alt"></i>
-                                <span>Dashboard</span>
+                                <span>Tablero</span>
                             </a>
                         </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/profile*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/profile') }}">
+                        <li class="sidebar-menu-item {{ request()->is('admin/perfil*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/perfil') }}">
                                 <i class="fas fa-user"></i>
                                 <span>Perfil</span>
                             </a>
                         </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/contacts*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/contacts') }}">
-                                <i class="fas fa-address-book"></i>
-                                <span>Contactos</span>
+                        <li class="sidebar-menu-item {{ request()->is('admin/doctores*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/doctores') }}">
+                                <i class="fas fa-user-md"></i>
+                                <span>Doctores</span>
                             </a>
                         </li>
                     </ul>
                 </div>
-                
                 <div class="sidebar-section">
-                    <h3 class="section-title">Reportes</h3>
+                    <h3 class="section-title">Gestión Clínica</h3>
                     <ul class="sidebar-menu">
-                        <li class="sidebar-menu-item {{ request()->is('admin/reports/daily*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/reports/daily') }}">
+                        <li class="sidebar-menu-item {{ request()->is('admin/tablero/citas*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/tablero/citas-todas') }}">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Citas</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-menu-item {{ request()->is('admin/tablero/seguimiento*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/tablero/seguimiento-todos') }}">
+                                <i class="fas fa-user-injured"></i>
+                                <span>Pacientes en Seguimiento</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h3 class="section-title">Reportes de Cita</h3>
+                    <ul class="sidebar-menu">
+                    <li class="sidebar-menu-item {{ request()->is('admin/historial-citas*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/historial-citas') }}">
                                 <i class="fas fa-calendar-day"></i>
-                                <span>Diarios</span>
+                                <span>Historial de Citas</span>
                             </a>
                         </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/reports/monthly*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/reports/monthly') }}">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Mensuales</span>
+                        <li class="sidebar-menu-item {{ request()->is('admin/reportes/generar*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/reportes/generar') }}">
+                                <i class="fas fa-file-download"></i>
+                                <span>Generar Reporte</span>
                             </a>
                         </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/reports/services*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/reports/services') }}">
-                                <i class="fas fa-concierge-bell"></i>
-                                <span>Servicios</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/reports/inventory*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/reports/inventory') }}">
-                                <i class="fas fa-boxes"></i>
-                                <span>Inventario</span>
-                            </a>
-                        </li>
+                        
                     </ul>
                 </div>
                 
                 <div class="sidebar-section">
                     <h3 class="section-title">Facturaciones</h3>
                     <ul class="sidebar-menu">
-                        <li class="sidebar-menu-item {{ request()->is('admin/invoices/history*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/invoices/history') }}">
+                        <li class="sidebar-menu-item {{ request()->is('admin/historial-facturas*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/historial-facturas') }}">
                                 <i class="fas fa-history"></i>
-                                <span>Historial</span>
+                                <span>Historial de Facturas</span>
                             </a>
                         </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/invoices/generate*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/invoices/generate') }}">
-                                <i class="fas fa-file-invoice"></i>
+                        <li class="sidebar-menu-item {{ request()->is('admin/generar-facturas*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/generar-facturas') }}">
+                                <i class="fas fa-file-invoice-dollar"></i>
                                 <span>Generar Factura</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/templates*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/templates') }}">
-                                <i class="fas fa-file-alt"></i>
-                                <span>Plantillas</span>
                             </a>
                         </li>
                     </ul>
                 </div>
-            </div>
-            
-            <div class="sidebar-footer">
-                <a href="{{ url('admin/settings') }}" class="sidebar-menu-item {{ request()->is('admin/settings*') ? 'active' : '' }}">
-                    <i class="fas fa-cog"></i>
-                    <span>Configuración</span>
-                </a>
             </div>
         </aside>
         

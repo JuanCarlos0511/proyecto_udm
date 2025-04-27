@@ -2,6 +2,23 @@
 .hero {
     text-align: center;
     padding: 40px 20px 60px;
+    background-color: #f9f9ff;
+    border-radius: 10px;
+    margin: 20px;
+}
+
+.hero-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.logo-container {
+    margin-bottom: 20px;
+}
+
+.hero-logo {
+    max-width: 180px;
+    height: auto;
 }
 
 .hero h1 {

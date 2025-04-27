@@ -23,8 +23,8 @@ Route::get('/verify/resend', [RegisterController::class, 'resendCode'])->name('v
 
 // Rutas de perfil (protegidas con autenticación)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/perfil', [ProfileController::class, 'show'])->name('profile');
+    Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::get('/settings', function () {
@@ -38,13 +38,64 @@ Route::get('/logout', function () {
 // Ruta para procesar el cierre de sesión
 Route::post('/logout', 'App\Http\Controllers\Auth\LogoutController@logout')->name('logout');
 
-// Admin routes
+// Rutas de administración
 Route::get('/admin', function () {
-    return redirect('/dashboard');
+    return redirect('/admin/tablero');
 });
 
-Route::get('/dashboard', 'App\Http\Controllers\Admin\DashboardController@index');
-Route::get('/dashboard/refresh', 'App\Http\Controllers\Admin\DashboardController@refresh');
+Route::get('/admin/tablero', 'App\Http\Controllers\Admin\DashboardController@index');
+Route::get('/admin/tablero/actualizar', 'App\Http\Controllers\Admin\DashboardController@refresh');
+
+// Ruta de perfil de administrador
+Route::get('/admin/perfil', function () {
+    return view('admin.profile');
+});
+
+// Rutas de historial de administrador
+Route::get('/admin/historial-citas', function () {
+    return view('admin.history-appointments');
+});
+
+Route::get('/admin/historial-facturas', function () {
+    return view('admin.history-bills');
+});
+
+// Ruta de generación de reportes de administrador
+Route::get('/admin/reportes/generar', function () {
+    return view('admin.reports-generate');
+});
+
+// Ruta de generación de facturas de administrador
+Route::get('/admin/generar-facturas', function () {
+    return view('admin.generate-bills');
+});
+
+// Ruta para gestión de doctores
+Route::get('/admin/doctores', function () {
+    return view('admin.doctores');
+});
+
+// Rutas para el tablero
+Route::get('/admin/tablero/citas-todas', function () {
+    return view('admin.tablero-citas-todas');
+});
+
+Route::get('/admin/tablero/seguimiento-todos', function () {
+    return view('admin.tablero-seguimiento-todos');
+});
+
+// Rutas para perfil
+Route::get('/admin/perfil/editar', function () {
+    return view('admin.perfil-editar');
+});
+
+Route::get('/admin/perfil/actividad-toda', function () {
+    return view('admin.perfil-actividad-toda');
+});
+
+Route::get('/admin/perfil/compensaciones-todas', function () {
+    return view('admin.perfil-compensaciones-todas');
+});
 
 // Add routes for all other screens
 Route::get('/appointment', function () {
@@ -60,6 +111,8 @@ Route::get('/appointment-home', function () {
 Route::get('/history', function () {
     return view('history');
 });
+
+
 
 Route::get('/schedule', function () {
     return view('schedule');

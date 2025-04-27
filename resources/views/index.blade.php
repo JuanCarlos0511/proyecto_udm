@@ -5,8 +5,10 @@
 @section('content')
     <main>
         <section class="hero">
-            <h1>Agenda tu cita ahora</h1>
-            <p>Agenda tu cita en línea y disfruta de la comodidad de ser atendido en la clínica o desde tu hogar. Nuestro equipo de profesionales está listo para ayudarte.</p>
+            <div class="hero-content">
+                <h1>Agenda tu cita ahora</h1>
+                <p>Agenda tu cita en línea y disfruta de la comodidad de ser atendido en la clínica o desde tu hogar. Nuestro equipo de profesionales está listo para ayudarte.</p>
+            </div>
             
             <div class="appointment-options">
                 <div class="appointment-card clinic">
@@ -42,7 +44,7 @@
                         <i class="fas fa-bolt"></i>
                     </div>
                     <h3>Electroterapia: <span>Alivio Inmediato</span></h3>
-                    <p>Aprovechamos las propiedades terapéuticas del agua para mejorar la movilidad, fortalecer los músculos y aliviar el dolor en lesiones musculoesqueléticas y neurológicas.</p>
+                    <p>Utilizamos corrientes eléctricas terapéuticas para reducir el dolor, estimular los músculos y acelerar la recuperación de lesiones, proporcionando un alivio efectivo.</p>
                 </div>
 
                 <div class="service-card">
@@ -71,7 +73,7 @@
 
                 <div class="service-card">
                     <div class="service-image">
-                        <img src="{{ asset('assets/atencion-integral.jpg') }}" alt="Atención Integral">
+                        <img src="{{ asset('assets/atencion_lesiones.jpg') }}" alt="Atención Integral">
                     </div>
                     <div class="service-icon">
                         <i class="fas fa-user-md"></i>
