@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
+use App\Models\Bill;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -18,7 +22,7 @@ class DashboardController extends Controller
         // Get dashboard data
         $data = $this->getDashboardData();
         
-        return view('admin.dashboard', $data);
+        return view('admin.dashboard.dashboard', $data);
     }
     
     /**
@@ -28,16 +32,77 @@ class DashboardController extends Controller
      */
     private function getDashboardData()
     {
+        // Get current month and previous month for comparisons
+        $currentMonth = Carbon::now()->month;
+        $previousMonth = Carbon::now()->subMonth()->month;
+        $currentYear = Carbon::now()->year;
+        
+        // Calculate income
+        $currentMonthIncome = Appointment::whereMonth('date', $currentMonth)
+            ->whereYear('date', $currentYear)
+            ->sum('price');
+            
+        $previousMonthIncome = Appointment::whereMonth('date', $previousMonth)
+            ->whereYear('date', $currentYear)
+            ->sum('price');
+            
+        $incomeChange = $previousMonthIncome > 0 
+            ? round((($currentMonthIncome - $previousMonthIncome) / $previousMonthIncome) * 100) 
+            : 100;
+            
+        // Calculate appointments count
+        $currentMonthAppointments = Appointment::whereMonth('date', $currentMonth)
+            ->whereYear('date', $currentYear)
+            ->count();
+            
+        $previousMonthAppointments = Appointment::whereMonth('date', $previousMonth)
+            ->whereYear('date', $currentYear)
+            ->count();
+            
+        $appointmentsChange = $previousMonthAppointments > 0 
+            ? round((($currentMonthAppointments - $previousMonthAppointments) / $previousMonthAppointments) * 100) 
+            : 100;
+            
+        // Calculate patients count
+        $currentMonthPatients = User::where('role', 'paciente')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+            
+        $previousMonthPatients = User::where('role', 'paciente')
+            ->whereMonth('created_at', $previousMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+            
+        $patientsChange = $previousMonthPatients > 0 
+            ? round((($currentMonthPatients - $previousMonthPatients) / $previousMonthPatients) * 100) 
+            : 100;
+            
+        // Calculate treatments (completed appointments)
+        $currentMonthTreatments = Appointment::whereMonth('date', $currentMonth)
+            ->whereYear('date', $currentYear)
+            ->where('status', 'Completado')
+            ->count();
+            
+        $previousMonthTreatments = Appointment::whereMonth('date', $previousMonth)
+            ->whereYear('date', $currentYear)
+            ->where('status', 'Completado')
+            ->count();
+            
+        $treatmentsChange = $previousMonthTreatments > 0 
+            ? round((($currentMonthTreatments - $previousMonthTreatments) / $previousMonthTreatments) * 100) 
+            : 100;
+        
         return [
             // Stats for the stat cards
-            'incomeValue' => 24850,
-            'incomeChange' => 15,
-            'appointmentsCount' => 78,
-            'appointmentsChange' => 12,
-            'patientsCount' => 42,
-            'patientsChange' => 8,
-            'treatmentsCount' => 35,
-            'treatmentsChange' => 5,
+            'incomeValue' => $currentMonthIncome,
+            'incomeChange' => $incomeChange,
+            'appointmentsCount' => $currentMonthAppointments,
+            'appointmentsChange' => $appointmentsChange,
+            'patientsCount' => User::where('role', 'paciente')->count(),
+            'patientsChange' => $patientsChange,
+            'treatmentsCount' => $currentMonthTreatments,
+            'treatmentsChange' => $treatmentsChange,
             
             // Chart data
             'incomeData' => $this->getIncomeData(),
@@ -60,12 +125,46 @@ class DashboardController extends Controller
      */
     private function getIncomeData()
     {
-        // This would normally come from the database
+        // Get current date
+        $now = Carbon::now();
+        
+        // Weekly data (last 7 days)
+        $weekData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = $now->copy()->subDays($i);
+            $weekData[] = Appointment::whereDate('date', $date->toDateString())->sum('price');
+        }
+        
+        // Monthly data (last 4 weeks)
+        $monthData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $startDate = $now->copy()->subWeeks($i + 1)->addDay();
+            $endDate = $now->copy()->subWeeks($i);
+            $monthData[] = Appointment::whereBetween('date', [$startDate, $endDate])->sum('price');
+        }
+        
+        // Quarterly data (last 4 months)
+        $quarterData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $month = $now->copy()->subMonths($i);
+            $quarterData[] = Appointment::whereMonth('date', $month->month)
+                ->whereYear('date', $month->year)
+                ->sum('price');
+        }
+        
+        // Yearly data (last 4 quarters)
+        $yearData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $startQuarter = $now->copy()->subMonths($i * 3 + 3);
+            $endQuarter = $now->copy()->subMonths($i * 3);
+            $yearData[] = Appointment::whereBetween('date', [$startQuarter, $endQuarter])->sum('price');
+        }
+        
         return [
-            'week' => [4200, 5100, 4800, 6300, 7200, 8500, 9100],
-            'month' => [18500, 21300, 19800, 24850],
-            'quarter' => [58000, 64500, 72000, 89500],
-            'year' => [210000, 245000, 280000, 320000]
+            'week' => $weekData,
+            'month' => $monthData,
+            'quarter' => $quarterData,
+            'year' => $yearData
         ];
     }
     
@@ -76,12 +175,46 @@ class DashboardController extends Controller
      */
     private function getAppointmentsData()
     {
-        // This would normally come from the database
+        // Get current date
+        $now = Carbon::now();
+        
+        // Weekly data (last 7 days)
+        $weekData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = $now->copy()->subDays($i);
+            $weekData[] = Appointment::whereDate('date', $date->toDateString())->count();
+        }
+        
+        // Monthly data (last 4 weeks)
+        $monthData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $startDate = $now->copy()->subWeeks($i + 1)->addDay();
+            $endDate = $now->copy()->subWeeks($i);
+            $monthData[] = Appointment::whereBetween('date', [$startDate, $endDate])->count();
+        }
+        
+        // Quarterly data (last 4 months)
+        $quarterData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $month = $now->copy()->subMonths($i);
+            $quarterData[] = Appointment::whereMonth('date', $month->month)
+                ->whereYear('date', $month->year)
+                ->count();
+        }
+        
+        // Yearly data (last 4 quarters)
+        $yearData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $startQuarter = $now->copy()->subMonths($i * 3 + 3);
+            $endQuarter = $now->copy()->subMonths($i * 3);
+            $yearData[] = Appointment::whereBetween('date', [$startQuarter, $endQuarter])->count();
+        }
+        
         return [
-            'week' => [12, 15, 10, 18, 14, 20, 16],
-            'month' => [45, 52, 63, 78],
-            'quarter' => [145, 162, 178, 195],
-            'year' => [580, 645, 720, 850]
+            'week' => $weekData,
+            'month' => $monthData,
+            'quarter' => $quarterData,
+            'year' => $yearData
         ];
     }
     
@@ -92,12 +225,53 @@ class DashboardController extends Controller
      */
     private function getPatientsData()
     {
-        // This would normally come from the database
+        // Get current date
+        $now = Carbon::now();
+        
+        // Weekly data (last 7 days)
+        $weekData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = $now->copy()->subDays($i);
+            $weekData[] = User::where('role', 'paciente')
+                ->whereDate('created_at', $date->toDateString())
+                ->count();
+        }
+        
+        // Monthly data (last 4 weeks)
+        $monthData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $startDate = $now->copy()->subWeeks($i + 1)->addDay();
+            $endDate = $now->copy()->subWeeks($i);
+            $monthData[] = User::where('role', 'paciente')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->count();
+        }
+        
+        // Quarterly data (last 4 months)
+        $quarterData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $month = $now->copy()->subMonths($i);
+            $quarterData[] = User::where('role', 'paciente')
+                ->whereMonth('created_at', $month->month)
+                ->whereYear('created_at', $month->year)
+                ->count();
+        }
+        
+        // Yearly data (last 4 quarters)
+        $yearData = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $startQuarter = $now->copy()->subMonths($i * 3 + 3);
+            $endQuarter = $now->copy()->subMonths($i * 3);
+            $yearData[] = User::where('role', 'paciente')
+                ->whereBetween('created_at', [$startQuarter, $endQuarter])
+                ->count();
+        }
+        
         return [
-            'week' => [8, 10, 7, 12, 9, 14, 11],
-            'month' => [32, 38, 42, 45],
-            'quarter' => [95, 110, 125, 140],
-            'year' => [380, 420, 460, 510]
+            'week' => $weekData,
+            'month' => $monthData,
+            'quarter' => $quarterData,
+            'year' => $yearData
         ];
     }
     
@@ -123,33 +297,41 @@ class DashboardController extends Controller
      */
     private function getUpcomingAppointments()
     {
-        // This would normally come from the database
-        return [
-            (object) [
-                'id' => 1,
-                'patient_name' => 'Carlos Rodríguez',
-                'formatted_date' => '19 Abr, 2025',
-                'doctor_name' => 'Dra. María González',
-                'status_class' => 'scheduled',
-                'status_text' => 'Agendada'
-            ],
-            (object) [
-                'id' => 2,
-                'patient_name' => 'Ana Martínez',
-                'formatted_date' => '20 Abr, 2025',
-                'doctor_name' => 'Dr. Juan Pérez',
-                'status_class' => 'scheduled',
-                'status_text' => 'Agendada'
-            ],
-            (object) [
-                'id' => 3,
-                'patient_name' => 'Luis Hernández',
-                'formatted_date' => '21 Abr, 2025',
-                'doctor_name' => 'Dr. Roberto Sánchez',
-                'status_class' => 'scheduled',
-                'status_text' => 'Agendada'
-            ]
-        ];
+        $appointments = Appointment::with('user')
+            ->where('date', '>=', Carbon::today())
+            ->where('status', '!=', 'Cancelado')
+            ->orderBy('date')
+            ->limit(5)
+            ->get();
+            
+        $formattedAppointments = [];
+        
+        foreach ($appointments as $appointment) {
+            // Get doctor information
+            $doctorName = 'Doctor Asignado';
+            
+            // Format date
+            $formattedDate = Carbon::parse($appointment->date)->format('d M, Y');
+            
+            // Determine status class
+            $statusClass = 'scheduled';
+            if ($appointment->status == 'Completado') {
+                $statusClass = 'completed';
+            } elseif ($appointment->status == 'Solicitado') {
+                $statusClass = 'requested';
+            }
+            
+            $formattedAppointments[] = (object) [
+                'id' => $appointment->id,
+                'patient_name' => $appointment->user->name,
+                'formatted_date' => $formattedDate,
+                'doctor_name' => $doctorName,
+                'status_class' => $statusClass,
+                'status_text' => $appointment->status
+            ];
+        }
+        
+        return $formattedAppointments;
     }
     
     /**
@@ -159,54 +341,57 @@ class DashboardController extends Controller
      */
     private function getPatientsInFollowUp()
     {
-        // This would normally come from the database
-        return [
-            (object) [
-                'id' => 1,
-                'name' => 'Carlos Rodríguez',
-                'initials' => 'CR',
-                'last_visit_date' => '10 Abr, 2025',
-                'treatment' => 'Fisioterapia',
-                'status' => 'active',
-                'status_text' => 'Activo'
-            ],
-            (object) [
-                'id' => 2,
-                'name' => 'Ana Martínez',
-                'initials' => 'AM',
-                'last_visit_date' => '12 Abr, 2025',
-                'treatment' => 'Dermatología',
-                'status' => 'active',
-                'status_text' => 'Activo'
-            ],
-            (object) [
-                'id' => 3,
-                'name' => 'Luis Hernández',
-                'initials' => 'LH',
-                'last_visit_date' => '8 Abr, 2025',
-                'treatment' => 'Cardiología',
-                'status' => 'pending',
-                'status_text' => 'Pendiente'
-            ],
-            (object) [
-                'id' => 4,
-                'name' => 'Elena Gómez',
-                'initials' => 'EG',
-                'last_visit_date' => '5 Abr, 2025',
-                'treatment' => 'Nutrición',
-                'status' => 'active',
-                'status_text' => 'Activo'
-            ],
-            (object) [
-                'id' => 5,
-                'name' => 'Miguel Torres',
-                'initials' => 'MT',
-                'last_visit_date' => '15 Abr, 2025',
-                'treatment' => 'Terapia Respiratoria',
-                'status' => 'active',
-                'status_text' => 'Activo'
-            ]
-        ];
+        // Get patients with recent appointments
+        $patients = User::where('role', 'paciente')
+            ->whereHas('appointments', function ($query) {
+                $query->where('date', '<=', Carbon::now())
+                      ->where('status', 'Completado');
+            })
+            ->with(['appointments' => function ($query) {
+                $query->where('status', 'Completado')
+                      ->orderBy('date', 'desc');
+            }])
+            ->limit(5)
+            ->get();
+            
+        $formattedPatients = [];
+        
+        foreach ($patients as $patient) {
+            // Get last appointment
+            $lastAppointment = $patient->appointments->first();
+            
+            if (!$lastAppointment) {
+                continue;
+            }
+            
+            // Get initials
+            $nameParts = explode(' ', $patient->name);
+            $initials = '';
+            foreach ($nameParts as $part) {
+                if (!empty($part)) {
+                    $initials .= strtoupper(substr($part, 0, 1));
+                }
+            }
+            
+            // Format date
+            $formattedDate = Carbon::parse($lastAppointment->date)->format('d M, Y');
+            
+            // Determine status
+            $status = $patient->status === 'active' ? 'active' : 'pending';
+            $statusText = $patient->status === 'active' ? 'Activo' : 'Pendiente';
+            
+            $formattedPatients[] = (object) [
+                'id' => $patient->id,
+                'name' => $patient->name,
+                'initials' => $initials,
+                'last_visit_date' => $formattedDate,
+                'treatment' => $lastAppointment->subject,
+                'status' => $status,
+                'status_text' => $statusText
+            ];
+        }
+        
+        return $formattedPatients;
     }
     
     /**

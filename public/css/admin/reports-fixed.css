@@ -1,4 +1,6 @@
 /* Estilos específicos para la página de reportes */
+/* Todos los estilos están encapsulados dentro del contenedor .report-container */
+
 .report-container {
     display: flex;
     flex-direction: column;
@@ -8,6 +10,7 @@
     margin: 0 auto;
 }
 
+/* Secciones */
 .report-container .date-range-section {
     background-color: white;
     border-radius: 8px;
@@ -20,6 +23,34 @@
     align-items: center;
 }
 
+.report-container .report-types-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.report-container .report-options-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+/* Títulos */
+.report-container .report-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Selector de fechas */
 .report-container .date-range-container {
     display: flex;
     align-items: center;
@@ -63,30 +94,14 @@
     color: #333;
 }
 
-.report-container .report-types-section {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 30px;
-    width: 100%;
-    margin-bottom: 40px;
-}
-
-.report-container .report-section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 25px;
-    text-align: center;
-}
-
-.report-types-grid {
+/* Tipos de reportes */
+.report-container .report-types-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
 }
 
-.report-type-card {
+.report-container .report-type-card {
     background-color: #f8f9fa;
     border-radius: 8px;
     padding: 20px;
@@ -98,17 +113,17 @@
     transition: all 0.2s;
 }
 
-.report-type-card:hover {
+.report-container .report-type-card:hover {
     background-color: #e9ecef;
     transform: translateY(-5px);
 }
 
-.report-type-card.active {
+.report-container .report-type-card.active {
     background-color: #6c5ce7;
     color: white;
 }
 
-.report-type-icon {
+.report-container .report-type-icon {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -120,55 +135,47 @@
     color: #6c5ce7;
 }
 
-.report-type-card.active .report-type-icon {
+.report-container .report-type-card.active .report-type-icon {
     color: #6c5ce7;
 }
 
-.report-type-title {
+.report-container .report-type-title {
     font-size: 16px;
     font-weight: 600;
     text-align: center;
 }
 
-.report-type-description {
+.report-container .report-type-description {
     font-size: 13px;
     color: #666;
     text-align: center;
     line-height: 1.4;
 }
 
-.report-type-card.active .report-type-description {
+.report-container .report-type-card.active .report-type-description {
     color: rgba(255, 255, 255, 0.8);
 }
 
-.report-options-section {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 30px;
-    width: 100%;
-    margin-bottom: 40px;
-}
-
-.options-grid {
+/* Opciones de reporte */
+.report-container .options-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
-.option-group {
+.report-container .option-group {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.option-label {
+.report-container .option-label {
     font-size: 14px;
     font-weight: 500;
     color: #333;
 }
 
-.option-select {
+.report-container .option-select {
     padding: 10px 15px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -177,13 +184,14 @@
     transition: all 0.2s;
 }
 
-.option-select:focus {
+.report-container .option-select:focus {
     border-color: #6c5ce7;
     outline: none;
     box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
 }
 
-.generate-button {
+/* Botón de generar */
+.report-container .generate-button {
     background-color: #6c5ce7;
     color: white;
     border-radius: 8px;
@@ -199,16 +207,16 @@
     margin: 0 auto;
 }
 
-.generate-button:hover {
+.report-container .generate-button:hover {
     background-color: #5a4ebd;
 }
 
-.generate-button-icon {
+.report-container .generate-button-icon {
     font-size: 18px;
 }
 
-/* Modal Styles */
-.modal {
+/* Estilos del modal */
+.report-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -221,14 +229,14 @@
     z-index: 1000;
 }
 
-.modal-content {
+.report-modal .modal-content {
     background-color: white;
     border-radius: 8px;
     width: 350px;
     overflow: hidden;
 }
 
-.modal-header {
+.report-modal .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -236,19 +244,19 @@
     border-bottom: 1px solid #eaeaea;
 }
 
-.modal-title {
+.report-modal .modal-title {
     font-size: 16px;
     font-weight: 600;
     color: #333;
 }
 
-.modal-close {
+.report-modal .modal-close {
     font-size: 20px;
     color: #666;
     cursor: pointer;
 }
 
-.year-selector {
+.report-modal .year-selector {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -256,13 +264,13 @@
     border-bottom: 1px solid #eaeaea;
 }
 
-.year-value {
+.report-modal .year-value {
     font-size: 16px;
     font-weight: 600;
     color: #333;
 }
 
-.year-arrow {
+.report-modal .year-arrow {
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -274,18 +282,18 @@
     transition: all 0.2s;
 }
 
-.year-arrow:hover {
+.report-modal .year-arrow:hover {
     background-color: #e9ecef;
 }
 
-.month-grid {
+.report-modal .month-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     padding: 20px;
 }
 
-.month-item {
+.report-modal .month-item {
     padding: 10px;
     text-align: center;
     border-radius: 8px;
@@ -293,16 +301,16 @@
     transition: all 0.2s;
 }
 
-.month-item:hover {
+.report-modal .month-item:hover {
     background-color: #f5f6fa;
 }
 
-.month-item.active {
+.report-modal .month-item.active {
     background-color: #6c5ce7;
     color: white;
 }
 
-.modal-actions {
+.report-modal .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -310,7 +318,7 @@
     border-top: 1px solid #eaeaea;
 }
 
-.modal-button {
+.report-modal .modal-button {
     padding: 8px 15px;
     border-radius: 8px;
     font-size: 14px;
@@ -318,20 +326,20 @@
     transition: all 0.2s;
 }
 
-.cancel-button {
+.report-modal .cancel-button {
     background-color: #f5f6fa;
     color: #333;
 }
 
-.cancel-button:hover {
+.report-modal .cancel-button:hover {
     background-color: #e9ecef;
 }
 
-.apply-button {
+.report-modal .apply-button {
     background-color: #6c5ce7;
     color: white;
 }
 
-.apply-button:hover {
+.report-modal .apply-button:hover {
     background-color: #5a4ebd;
 }

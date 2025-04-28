@@ -5,6 +5,13 @@
     margin-bottom: 20px;
 }
 
+.charts-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
 .dashboard-card {
     background-color: white;
     border-radius: 8px;

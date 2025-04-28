@@ -59,4 +59,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Appointment::class);
     }
+    
+    /**
+     * Get the bills for the user.
+     */
+    public function bills()
+    {
+        return $this->hasMany(Bill::class);
+    }
 }

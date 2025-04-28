@@ -149,7 +149,7 @@
                 <div class="profile-card">
                     <div class="profile-card-header">
                         <h3 class="profile-card-title">Actividad reciente</h3>
-                        <a href="{{ url('admin/perfil-actividad-toda') }}" class="edit-button">Ver todo</a>
+                        <a href="{{ url('admin/perfil/actividad-toda') }}" class="edit-button">Ver todo</a>
                     </div>
                     <div class="profile-card-content">
                         <div class="activity-list">
@@ -207,7 +207,7 @@
                 <div class="profile-card">
                     <div class="profile-card-header">
                         <h3 class="profile-card-title">Compensaciones</h3>
-                        <a href="{{ url('admin/perfil-compensaciones-todas') }}" class="edit-button">Ver todo</a>
+                        <a href="{{ url('admin/perfil/compensaciones-todas') }}" class="edit-button">Ver todo</a>
                     </div>
                     <div class="profile-card-content">
                         <div class="profile-field">
