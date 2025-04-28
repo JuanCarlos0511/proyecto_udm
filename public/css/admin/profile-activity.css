@@ -1,0 +1,130 @@
+.activity-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.activity-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.activity-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.activity-filter {
+    padding: 8px 15px;
+    border-radius: 8px;
+    background-color: #f5f6fa;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.activity-filter:hover {
+    background-color: #e9ecef;
+}
+
+.activity-filter.active {
+    background-color: #6c5ce7;
+    color: white;
+}
+
+.activity-timeline {
+    padding: 0 10px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    padding-bottom: 25px;
+    border-left: 2px solid #eaeaea;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -8px;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #6c5ce7;
+    border: 2px solid white;
+}
+
+.timeline-content {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.timeline-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.timeline-time {
+    font-size: 13px;
+    color: #777;
+}
+
+.timeline-description {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.pagination-button {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background-color: #f5f6fa;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-button:hover {
+    background-color: #e9ecef;
+}
+
+.pagination-button.active {
+    background-color: #6c5ce7;
+    color: white;
+}

@@ -1,0 +1,171 @@
+.compensations-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.compensations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.compensations-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.compensations-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.compensations-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #f5f6fa;
+    border-radius: 8px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.compensations-filter:hover {
+    background-color: #e9ecef;
+}
+
+.compensations-filter-icon {
+    color: #6c5ce7;
+}
+
+.compensations-filter-text {
+    font-size: 14px;
+    color: #333;
+}
+
+.compensations-export {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #6c5ce7;
+    border-radius: 8px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.compensations-export:hover {
+    background-color: #5a4ebd;
+}
+
+.compensations-export-icon {
+    color: white;
+}
+
+.compensations-export-text {
+    font-size: 14px;
+    color: white;
+}
+
+.compensations-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.compensations-table th,
+.compensations-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.compensations-table th {
+    font-weight: 600;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.compensations-table tr:last-child td {
+    border-bottom: none;
+}
+
+.compensation-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-paid {
+    background-color: #e3fcef;
+    color: #00b074;
+}
+
+.status-pending {
+    background-color: #fff4e5;
+    color: #ff9500;
+}
+
+.compensation-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background-color: #f5f6fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-button:hover {
+    background-color: #e9ecef;
+}
+
+.action-button i {
+    color: #6c5ce7;
+    font-size: 14px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.pagination-button {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background-color: #f5f6fa;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-button:hover {
+    background-color: #e9ecef;
+}
+
+.pagination-button.active {
+    background-color: #6c5ce7;
+    color: white;
+}
