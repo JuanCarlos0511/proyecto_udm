@@ -10,22 +10,69 @@ body.auth-page {
 .stage-indicators {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 20px;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.stage-indicators::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 2px;
+    background-color: #ddd;
+    z-index: 0;
 }
 
 .stage-dot {
-    width: 15px;
-    height: 15px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background-color: #ddd;
+    background-color: #fff;
+    border: 2px solid #ddd;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stage-number {
+    font-size: 18px;
+    font-weight: 700;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.stage-label {
+    position: absolute;
+    top: 45px;
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .stage-dot.active {
     background-color: #212467;
-    transform: scale(1.2);
+    border-color: #212467;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 5px rgba(33, 36, 103, 0.2);
+}
+
+.stage-dot.active .stage-number {
+    color: white;
+}
+
+.stage-dot.active .stage-label {
+    color: #212467;
+    font-weight: 600;
 }
 
 .register-stage {
@@ -54,48 +101,72 @@ body.auth-page {
 }
 
 .stage-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #212467;
+    margin-bottom: 25px;
     text-align: center;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.stage-title:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background-color: #212467;
+    border-radius: 3px;
 }
 
 .stage-buttons {
     display: flex;
     justify-content: space-between;
-    margin-top: 25px;
+    margin-top: 35px;
+    gap: 15px;
 }
 
 .next-stage-btn, .prev-stage-btn {
     background-color: #5a62b1;
     color: white;
     border: none;
-    border-radius: 4px;
-    padding: 10px 15px;
-    font-size: 14px;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .next-stage-btn:hover, .prev-stage-btn:hover {
     background-color: #444a8c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .skip-btn {
     background-color: transparent;
     color: #666;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 10px 15px;
-    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+    width: 100%;
 }
 
 .skip-btn:hover {
     background-color: #f5f5f5;
     color: #333;
+    border-color: #ccc;
+    transform: translateY(-2px);
 }
 
 /* Estilos para el formulario en filas */
@@ -120,6 +191,7 @@ body.auth-page {
     display: flex;
     height: 100vh;
     margin: 0;
+    overflow: hidden;
 }
 
 /* Left Panel - Blue Section */
@@ -207,13 +279,20 @@ body.auth-page {
     background-color: white;
     padding: 40px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    overflow-y: auto;
+    max-height: 100vh;
 }
 
 .register-form-container {
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
 }
 
 .register-form-container h2 {
@@ -304,25 +383,39 @@ body.auth-page {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 20px;
+    position: relative;
 }
 
 .form-group label {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 15px;
+    font-weight: 600;
     color: #333;
+    margin-bottom: 5px;
 }
 
 .form-group input {
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.3s;
+    padding: 14px 18px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.form-group input:hover {
+    border-color: #aaa;
+}
+
+.form-group input.input-error {
+    border-color: #e74c3c;
+    background-color: #fff8f8;
 }
 
 .form-group input:focus {
     border-color: #212467;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(33, 36, 103, 0.1);
 }
 
 .terms-privacy {
@@ -345,16 +438,128 @@ body.auth-page {
     background-color: #212467;
     color: white;
     border: none;
-    border-radius: 4px;
-    padding: 12px 15px;
-    font-size: 16px;
-    font-weight: 500;
+    border-radius: 8px;
+    padding: 16px 24px;
+    font-size: 18px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(33, 36, 103, 0.2);
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .register-btn:hover {
     background-color: #181c4f;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(33, 36, 103, 0.3);
+}
+
+/* Estilos para los mensajes de ayuda */
+.form-hint {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Estilos para los mensajes de error */
+.error-message {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+    font-weight: 500;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.alert li {
+    margin-bottom: 5px;
+}
+
+input.is-invalid {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.25);
+    margin-top: 5px;
+    display: block;
+}
+
+.stage-description {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin: -15px 0 25px;
+    line-height: 1.5;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Estilos para el input con icono */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    background-color: #f0f0f0;
+    border-radius: 8px 0 0 8px;
+    border-right: 1px solid #ddd;
+    color: #666;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.input-with-icon input {
+    padding-left: 60px !important;
+}
+
+/* Estilos para el checkbox de términos */
+.checkbox-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    accent-color: #212467;
+}
+
+.checkbox-container label {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #666;
 }
 
 /* Animation for form elements */

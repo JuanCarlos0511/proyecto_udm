@@ -5,11 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use App\Mail\VerificationCode;
-use Illuminate\Support\Facades\Session;
 
 class RegisterController extends Controller
 {
@@ -26,10 +23,25 @@ class RegisterController extends Controller
      */
     public function register(Request $request)
     {
+        // Verificar el token CSRF manualmente para evitar errores 419
+        if ($request->session()->token() !== $request->_token) {
+            // Regenerar el token CSRF
+            $request->session()->regenerateToken();
+        }
+
+        // Verificar primero si el correo ya existe
+        $existingUser = User::where('email', $request->email)->first();
+        if ($existingUser) {
+            // Si el correo ya existe, devolver un error con un mensaje personalizado
+            return redirect()->back()
+                ->withInput($request->except('password'))
+                ->withErrors(['email' => 'Este correo electrónico ya está registrado. Por favor, utiliza otro.']);
+        }
+
         // Validar los datos del formulario
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email',
             'password' => 'required|min:8',
             'age' => 'nullable|numeric|min:0|max:120',
             'phoneNumber' => 'nullable|string|size:10',
@@ -37,15 +49,18 @@ class RegisterController extends Controller
             'calle' => 'nullable|string|max:255',
             'numExterior' => 'nullable|string|max:20',
             'numInterior' => 'nullable|string|max:20',
-            'codigoPostal' => 'nullable|string|size:5',
+            'codigoPostal' => 'nullable|string|size:5|regex:/^[0-9]{5}$/',
         ]);
-
-        // Generar un código de verificación de 6 dígitos
-        $verificationCode = rand(100000, 999999);
+        
+        // Establecer valores por defecto
+        $numInterior = $request->numInterior;
+        if (empty($numInterior)) {
+            $numInterior = 'S/N';
+        }
 
         // Preparar la dirección si se proporcionaron los campos
         $address = null;
-        if ($request->colonia || $request->calle || $request->numExterior) {
+        if ($request->colonia || $request->calle || $request->numExterior || $request->numInterior || $request->codigoPostal) {
             $addressParts = [];
             
             if ($request->colonia) {
@@ -60,9 +75,9 @@ class RegisterController extends Controller
                 $addressParts[] = 'No. Ext: ' . $request->numExterior;
             }
             
-            if ($request->numInterior) {
-                $addressParts[] = 'No. Int: ' . $request->numInterior;
-            }
+            // Usar el valor por defecto S/N si no se proporcionó
+            $numInterior = $request->numInterior ?? 'S/N';
+            $addressParts[] = 'No. Int: ' . $numInterior;
             
             if ($request->codigoPostal) {
                 $addressParts[] = 'C.P. ' . $request->codigoPostal;
@@ -71,110 +86,27 @@ class RegisterController extends Controller
             $address = implode(', ', $addressParts);
         }
         
-        // Almacenar los datos temporalmente en la sesión
-        Session::put('registration_data', [
+        // Crear el usuario directamente
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password,
+            'password' => Hash::make($request->password),
+            'email_verified_at' => now(), // Marcamos el email como verificado automáticamente
             'age' => $request->age ?? 0,
             'phoneNumber' => $request->phoneNumber ?? '0000000000',
-            'address' => $address,
-            'verification_code' => $verificationCode,
-            'expires_at' => now()->addMinutes(30), // El código expira en 30 minutos
+            'adress' => $address, // Usamos el campo 'adress' que ya existe en la base de datos
+            'role' => 'user', // Asignamos el rol de usuario por defecto
+            'status' => 'active', // Establecemos el estado como activo
         ]);
-
-        // Enviar el correo con el código de verificación
-        Mail::to($request->email)->send(new VerificationCode($verificationCode));
-
-        // Redirigir a la página de verificación
-        return redirect()->route('verification.show');
-    }
-
-    /**
-     * Mostrar el formulario de verificación
-     */
-    public function showVerificationForm()
-    {
-        // Verificar si hay datos de registro en la sesión
-        if (!Session::has('registration_data')) {
-            return redirect()->route('register');
-        }
-
-        return view('auth.verify');
-    }
-
-    /**
-     * Verificar el código ingresado
-     */
-    public function verify(Request $request)
-    {
-        // Validar el código ingresado
-        $request->validate([
-            'verification_code' => 'required|numeric',
-        ]);
-
-        // Obtener los datos de registro de la sesión
-        $registrationData = Session::get('registration_data');
-
-        // Verificar si los datos existen y no han expirado
-        if (!$registrationData || now()->isAfter($registrationData['expires_at'])) {
-            Session::forget('registration_data');
-            return redirect()->route('register')
-                ->with('error', 'El código de verificación ha expirado. Por favor, regístrese nuevamente.');
-        }
-
-        // Verificar si el código es correcto
-        if ($request->verification_code != $registrationData['verification_code']) {
-            return back()->with('error', 'El código de verificación es incorrecto.');
-        }
-
-        // Crear el usuario
-        $user = User::create([
-            'name' => $registrationData['name'],
-            'email' => $registrationData['email'],
-            'password' => Hash::make($registrationData['password']),
-            'email_verified_at' => now(),
-            'age' => $registrationData['age'],
-            'phoneNumber' => $registrationData['phoneNumber'],
-            'address' => $registrationData['address'],
-        ]);
-
-        // Eliminar los datos de la sesión
-        Session::forget('registration_data');
 
         // Iniciar sesión automáticamente
-        \Illuminate\Support\Facades\Auth::login($user);
+        Auth::login($user);
 
-        // Redirigir al usuario a la página de perfil para completar sus datos
-        return redirect()->route('profile')
-            ->with('success', '¡Registro completado! Por favor, complete su perfil.');
-    }
+        // Guardar un mensaje de éxito en la sesión
+        session()->flash('success', '¡Registro completado! Por favor, complete su perfil.');
 
-    /**
-     * Reenviar el código de verificación
-     */
-    public function resendCode()
-    {
-        // Obtener los datos de registro de la sesión
-        $registrationData = Session::get('registration_data');
-
-        // Verificar si los datos existen
-        if (!$registrationData) {
-            return redirect()->route('register');
-        }
-
-        // Generar un nuevo código de verificación
-        $verificationCode = rand(100000, 999999);
-
-        // Actualizar el código en la sesión
-        $registrationData['verification_code'] = $verificationCode;
-        $registrationData['expires_at'] = now()->addMinutes(30);
-        Session::put('registration_data', $registrationData);
-
-        // Enviar el correo con el nuevo código
-        Mail::to($registrationData['email'])->send(new VerificationCode($verificationCode));
-
-        // Redirigir de vuelta a la página de verificación
-        return back()->with('success', 'Se ha enviado un nuevo código de verificación a su correo electrónico.');
+        // Redirigir a la página de perfil usando una redirección absoluta
+        // Esto debería funcionar independientemente de la configuración de rutas
+        return response()->redirectTo(url('/perfil'));
     }
 }
