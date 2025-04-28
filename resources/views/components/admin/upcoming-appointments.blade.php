@@ -1,7 +1,7 @@
 <div class="dashboard-card appointments-card">
     <div class="card-header">
         <h2>Citas Próximas</h2>
-        <a href="{{ url('admin/appointments') }}" class="view-all">Ver todas</a>
+        <a href="{{ url('admin/tablero/citas-todas') }}" class="view-all">Ver todas</a>
     </div>
     <div class="card-body">
         <table class="admin-table">

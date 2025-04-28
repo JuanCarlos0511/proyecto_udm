@@ -4,6 +4,7 @@
 
 @section('styles')
     <link rel="stylesheet" href="{{ asset('css/pages/register.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 @endsection
 
 @section('content')
@@ -26,9 +27,18 @@
     <div class="register-right-panel">
         <!-- Indicadores de etapa -->
         <div class="stage-indicators">
-            <div class="stage-dot active" data-stage="1"></div>
-            <div class="stage-dot" data-stage="2"></div>
-            <div class="stage-dot" data-stage="3"></div>
+            <div class="stage-dot active" data-stage="1">
+                <span class="stage-number">1</span>
+                <span class="stage-label">Básica</span>
+            </div>
+            <div class="stage-dot" data-stage="2">
+                <span class="stage-number">2</span>
+                <span class="stage-label">Personal</span>
+            </div>
+            <div class="stage-dot" data-stage="3">
+                <span class="stage-number">3</span>
+                <span class="stage-label">Dirección</span>
+            </div>
         </div>
         <div class="register-form-container">
             <h2>Crear tu cuenta</h2>
@@ -60,23 +70,46 @@
                 <div id="stage1" class="register-stage active">
                     <h3 class="stage-title">Información básica</h3>
                     
+                    <!-- Mostrar errores generales -->
+                    @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+                    
                     <div class="form-group fade-in-element" style="animation-delay: 0.1s;">
-                        <label for="name">Nombre</label>
-                        <input type="text" id="name" name="name" required>
+                        <label for="name">Nombre completo</label>
+                        <input type="text" id="name" name="name" placeholder="Ingresa tu nombre completo" required value="{{ old('name') }}">
+                        <small class="form-hint">Tal como aparece en tu identificación oficial</small>
+                        @error('name')
+                            <span class="error-message">{{ $message }}</span>
+                        @enderror
                     </div>
                     
                     <div class="form-group fade-in-element" style="animation-delay: 0.2s;">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <label for="email">Correo electrónico</label>
+                        <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required value="{{ old('email') }}">
+                        <small class="form-hint">Usarás este correo para iniciar sesión</small>
+                        @error('email')
+                            <span class="error-message">{{ $message }}</span>
+                        @enderror
                     </div>
                     
                     <div class="form-group fade-in-element" style="animation-delay: 0.3s;">
                         <label for="password">Contraseña</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" placeholder="Mínimo 8 caracteres" required>
+                        <small class="form-hint">Debe tener al menos 8 caracteres</small>
+                        @error('password')
+                            <span class="error-message">{{ $message }}</span>
+                        @enderror
                     </div>
                     
                     <div class="stage-buttons">
-                        <button type="button" class="next-stage-btn" data-next="2">Siguiente</button>
+                        <button type="button" class="next-stage-btn" data-next="2">Siguiente <i class="fas fa-arrow-right"></i></button>
                     </div>
                 </div>
                 
@@ -86,61 +119,68 @@
                     
                     <div class="form-group">
                         <label for="age">Edad</label>
-                        <input type="number" id="age" name="age" min="0" max="120" required>
+                        <input type="number" id="age" name="age" min="0" max="120" placeholder="Ej: 35" required>
+                        <small class="form-hint">Tu edad actual en años</small>
                     </div>
                     
                     <div class="form-group">
                         <label for="phoneNumber">Número de teléfono</label>
-                        <input type="tel" id="phoneNumber" name="phoneNumber" pattern="[0-9]{10}" required>
-                        <small>Ingrese exactamente 10 dígitos numéricos</small>
+                        <div class="input-with-icon">
+                            <span class="input-icon">+52</span>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" pattern="[0-9]{10}" placeholder="10 dígitos" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                        </div>
+                        <small class="form-hint">Ingresa exactamente 10 dígitos numéricos sin espacios ni guiones</small>
                     </div>
                     
                     <div class="stage-buttons">
-                        <button type="button" class="prev-stage-btn" data-prev="1">Anterior</button>
-                        <button type="button" class="next-stage-btn" data-next="3">Siguiente</button>
+                        <button type="button" class="prev-stage-btn" data-prev="1"><i class="fas fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="next-stage-btn" data-next="3">Siguiente <i class="fas fa-arrow-right"></i></button>
                     </div>
                 </div>
                 
                 <!-- Etapa 3: Dirección (opcional) -->
                 <div id="stage3" class="register-stage">
                     <h3 class="stage-title">Dirección (opcional)</h3>
+                    <p class="stage-description">Esta información nos ayuda a brindarte un mejor servicio. Puedes completarla más tarde desde tu perfil.</p>
                     
                     <div class="form-group">
                         <label for="colonia">Colonia</label>
-                        <input type="text" id="colonia" name="colonia">
+                        <input type="text" id="colonia" name="colonia" placeholder="Ej: Centro">
                     </div>
                     
                     <div class="form-group">
                         <label for="calle">Calle</label>
-                        <input type="text" id="calle" name="calle">
+                        <input type="text" id="calle" name="calle" placeholder="Ej: Av. Reforma">
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group half">
                             <label for="numExterior">Número exterior</label>
-                            <input type="text" id="numExterior" name="numExterior">
+                            <input type="text" id="numExterior" name="numExterior" placeholder="Ej: 123">
                         </div>
                         
                         <div class="form-group half">
                             <label for="numInterior">Número interior</label>
-                            <input type="text" id="numInterior" name="numInterior">
+                            <input type="text" id="numInterior" name="numInterior" placeholder="Ej: 4B">
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="codigoPostal">Código Postal</label>
-                        <input type="text" id="codigoPostal" name="codigoPostal" pattern="[0-9]{5}">
-                        <small>5 dígitos numéricos</small>
+                        <input type="number" id="codigoPostal" name="codigoPostal" pattern="[0-9]{5}" placeholder="5 dígitos" min="10000" max="99999" oninput="javascript: if (this.value.length > 5) this.value = this.value.slice(0, 5);">
+                        <small class="form-hint">Ingresa exactamente 5 dígitos numéricos</small>
                     </div>
                     
                     <div class="terms-privacy">
-                        <p>Al registrarte, aceptas nuestros <a href="{{ url('/terms') }}">Términos y Condiciones</a> y <a href="{{ url('/privacy') }}">Política de Privacidad</a></p>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="terms" name="terms" required>
+                            <label for="terms">Al registrarte, aceptas nuestros <a href="{{ url('/terms') }}">Términos y Condiciones</a> y <a href="{{ url('/privacy') }}">Política de Privacidad</a></label>
+                        </div>
                     </div>
                     
                     <div class="stage-buttons">
-                        <button type="button" class="prev-stage-btn" data-prev="2">Anterior</button>
-                        <button type="submit" class="register-btn">Registrarse</button>
-                        <button type="button" class="skip-btn" id="skipToVerify">Omitir</button>
+                        <button type="button" class="prev-stage-btn" data-prev="2"><i class="fas fa-arrow-left"></i> Anterior</button>
+                        <button type="submit" class="register-btn">Finalizar Registro</button>
                     </div>
                 </div>
             </form>
@@ -162,8 +202,109 @@
         const leftPanel = document.querySelector('.register-left-panel');
         const rightPanel = document.querySelector('.register-right-panel');
         
-        // Función para cambiar de etapa
+        // Función para mostrar mensajes de error
+        function showError(input, message) {
+            const formGroup = input.closest('.form-group');
+            let errorElement = formGroup.querySelector('.error-message');
+            
+            if (!errorElement) {
+                errorElement = document.createElement('span');
+                errorElement.className = 'error-message';
+                formGroup.appendChild(errorElement);
+            }
+            
+            errorElement.textContent = message;
+            input.classList.add('input-error');
+        }
+        
+        // Función para eliminar mensajes de error
+        function clearError(input) {
+            const formGroup = input.closest('.form-group');
+            const errorElement = formGroup.querySelector('.error-message');
+            
+            if (errorElement) {
+                errorElement.textContent = '';
+            }
+            
+            input.classList.remove('input-error');
+        }
+        
+        // Función para validar campos
+        function validateField(input) {
+            let isValid = true;
+            const value = input.value.trim();
+            
+            // Eliminar errores previos
+            clearError(input);
+            
+            // Validar según el tipo de campo
+            if (input.required && value === '') {
+                showError(input, 'Este campo es obligatorio');
+                isValid = false;
+            } else if (input.id === 'email' && value !== '') {
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(value)) {
+                    showError(input, 'Ingrese un correo electrónico válido');
+                    isValid = false;
+                }
+            } else if (input.id === 'password' && value !== '') {
+                if (value.length < 8) {
+                    showError(input, 'La contraseña debe tener al menos 8 caracteres');
+                    isValid = false;
+                }
+            } else if (input.id === 'phoneNumber' && value !== '') {
+                const phonePattern = /^[0-9]{10}$/;
+                if (!phonePattern.test(value)) {
+                    showError(input, 'Ingrese exactamente 10 dígitos numéricos');
+                    isValid = false;
+                }
+            } else if (input.id === 'age' && value !== '') {
+                const age = parseInt(value);
+                if (isNaN(age) || age < 0 || age > 120) {
+                    showError(input, 'Ingrese una edad válida entre 0 y 120');
+                    isValid = false;
+                }
+            } else if (input.id === 'codigoPostal' && value !== '') {
+                const cpPattern = /^[0-9]{5}$/;
+                if (!cpPattern.test(value)) {
+                    showError(input, 'Ingrese exactamente 5 dígitos numéricos');
+                    isValid = false;
+                }
+            } else if (input.id === 'codigoPostal' && value === '' && input.closest('.register-stage').id === 'stage3') {
+                // Si estamos en la etapa 3 y el código postal está vacío, no es un error
+                // ya que la dirección es opcional, pero si tiene algún valor debe ser válido
+            }
+            
+            return isValid;
+        }
+        
+        // Validar todos los campos de una etapa
+        function validateStage(stageElement) {
+            const inputs = stageElement.querySelectorAll('input');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                // Solo validamos los campos requeridos o los que tienen algún valor
+                if (input.required || input.value.trim() !== '') {
+                    const fieldValid = validateField(input);
+                    if (!fieldValid) isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+        
+        // Función para cambiar de etapa con validación
         function goToStage(currentStage, targetStage) {
+            // Si estamos avanzando, validamos la etapa actual
+            if (targetStage > currentStage) {
+                const currentStageElement = document.getElementById(`stage${currentStage}`);
+                if (!validateStage(currentStageElement)) {
+                    // Si la validación falla, no avanzamos
+                    return false;
+                }
+            }
+            
             // Actualizar los puntos indicadores
             dots.forEach(dot => dot.classList.remove('active'));
             dots[targetStage-1].classList.add('active');
@@ -171,7 +312,23 @@
             // Ocultar la etapa actual y mostrar la etapa objetivo con animación
             stages.forEach(stage => stage.classList.remove('active'));
             stages[targetStage-1].classList.add('active');
+            
+            return true;
         }
+        
+        // Agregar validación en tiempo real a los campos
+        const allInputs = document.querySelectorAll('.register-form input');
+        allInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+            
+            input.addEventListener('input', function() {
+                if (this.classList.contains('input-error')) {
+                    validateField(this);
+                }
+            });
+        });
         
         // Event listeners para los botones de siguiente
         nextButtons.forEach(button => {
@@ -191,42 +348,69 @@
             });
         });
         
-        // Event listeners para los puntos indicadores
+        // Event listeners para los puntos indicadores (con validación)
         dots.forEach((dot, index) => {
             dot.addEventListener('click', function() {
                 const targetStage = parseInt(this.getAttribute('data-stage'));
-                const currentStage = document.querySelector('.register-stage.active').id.replace('stage', '');
-                goToStage(currentStage, targetStage);
-            });
-        });
-        
-        // Manejar el envío del formulario
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Animar el desplazamiento del panel izquierdo
-            leftPanel.classList.add('slide-left');
-            rightPanel.classList.add('expand-right');
-            
-            // Esperar a que termine la animación y enviar el formulario
-            setTimeout(() => {
-                this.submit();
-            }, 800);
-        });
-        
-        // Manejar el botón de omitir
-        if (skipButton) {
-            skipButton.addEventListener('click', function() {
-                // Animar el desplazamiento del panel izquierdo
-                leftPanel.classList.add('slide-left');
-                rightPanel.classList.add('expand-right');
+                const currentStage = parseInt(document.querySelector('.register-stage.active').id.replace('stage', ''));
                 
-                // Esperar a que termine la animación y enviar el formulario
-                setTimeout(() => {
-                    registerForm.submit();
-                }, 800);
+                // Solo permitimos saltar a etapas anteriores o a la actual sin validación
+                if (targetStage <= currentStage) {
+                    goToStage(currentStage, targetStage);
+                } else {
+                    // Para avanzar, validamos todas las etapas anteriores
+                    let canAdvance = true;
+                    for (let i = 1; i < targetStage; i++) {
+                        const stageElement = document.getElementById(`stage${i}`);
+                        if (!validateStage(stageElement)) {
+                            goToStage(currentStage, i);
+                            canAdvance = false;
+                            break;
+                        }
+                    }
+                    
+                    if (canAdvance) {
+                        goToStage(currentStage, targetStage);
+                    }
+                }
             });
-        }
+        });
+        
+        // Manejar el envío del formulario con validación
+        registerForm.addEventListener('submit', function(e) {
+            // Validar todos los campos obligatorios
+            const requiredInputs = this.querySelectorAll('input[required]');
+            let isValid = true;
+            
+            requiredInputs.forEach(input => {
+                if (!validateField(input)) {
+                    e.preventDefault(); // Solo prevenimos si hay errores
+                    isValid = false;
+                    
+                    // Mostrar la etapa que contiene el campo con error
+                    const stageId = input.closest('.register-stage').id;
+                    const stageNum = parseInt(stageId.replace('stage', ''));
+                    goToStage(0, stageNum); // 0 es un valor ficticio para no hacer validación
+                }
+            });
+            
+            if (!isValid) {
+                return false;
+            }
+            
+            // Si todo está bien, desactivamos el botón para evitar envíos duplicados
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Procesando...';
+            }
+            
+            // Permitir que el formulario se envíe normalmente
+            // El controlador se encargará de la redirección
+            return true;
+        });
+        
+        // Ya no necesitamos el manejo del botón de omitir, ya que lo hemos eliminado
     });
 </script>
 @endsection

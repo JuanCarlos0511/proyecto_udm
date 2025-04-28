@@ -44,13 +44,7 @@
                     <span class="error-message">{{ $message }}</span>
                 @enderror
             </div>
-            
-            <div class="form-group">
-                <label for="email">Correo electrónico</label>
-                <input type="email" id="email" value="{{ $user->email }}" disabled>
-                <small>El correo electrónico no se puede modificar</small>
-            </div>
-            
+      
             <div class="form-group">
                 <label for="age">Edad</label>
                 <input type="number" id="age" name="age" value="{{ $user->age }}" min="1" max="120" required>
@@ -77,7 +71,7 @@
                     @endif
                 </label>
                 <input type="text" id="adress" name="adress" value="{{ $user->adress }}">
-                <small class="form-text">Este campo es opcional</small>
+                <small class="form-text">Este campo es necesario si requiere de citas a domicilio</small>
                 @error('adress')
                     <span class="error-message">{{ $message }}</span>
                 @enderror

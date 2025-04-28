@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProfileController;
@@ -14,21 +15,29 @@ Route::get('/sobre-nosotros', function () {
     return view('about');
 })->name('about');
 
-Route::get('/login', function () {
-    return view('login');
-});
+// Rutas de autenticación
+Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login.submit');
+Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
-// Rutas de registro y verificación
+// Rutas de registro
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
-Route::get('/verify', [RegisterController::class, 'showVerificationForm'])->name('verification.show');
-Route::post('/verify', [RegisterController::class, 'verify'])->name('verification.verify');
-Route::get('/verify/resend', [RegisterController::class, 'resendCode'])->name('verification.resend');
 
 // Rutas de perfil (protegidas con autenticación)
-Route::middleware(['auth'])->group(function () {
+// Usamos el middleware web para asegurar que las sesiones funcionen correctamente
+Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/perfil', [ProfileController::class, 'show'])->name('profile');
     Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
+});
+
+// Ruta alternativa para el perfil (para depuración)
+Route::get('/mi-perfil', function() {
+    if (Auth::check()) {
+        return redirect('/perfil');
+    } else {
+        return redirect('/login')->with('error', 'Debes iniciar sesión para acceder a tu perfil');
+    }
 });
 
 Route::get('/settings', function () {
