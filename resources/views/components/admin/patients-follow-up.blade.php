@@ -1,7 +1,7 @@
 <div class="patient-follow-up">
     <div class="follow-up-header">
         <div class="follow-up-title">Pacientes en Seguimiento</div>
-        <a href="{{ url('admin/patients/follow-up') }}" class="view-all">Ver todos</a>
+        <a href="{{ url('admin/tablero/seguimiento-todos') }}" class="view-all">Ver todos</a>
     </div>
     <div class="patient-list">
         @forelse ($patients as $patient)

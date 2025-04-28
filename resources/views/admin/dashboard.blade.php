@@ -3,7 +3,8 @@
 @section('title', 'Dashboard')
 
 @section('breadcrumb')
-    <span>Dashboard</span>
+<span class="breadcrumb-separator">/</span>
+    <span>Tablero</span>
 @endsection
 
 @section('page-title', 'Dashboard')
