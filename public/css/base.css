@@ -11,6 +11,11 @@ body {
     color: #333;
 }
 
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Igual al padding-top del body para compensar el header fijo */
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;

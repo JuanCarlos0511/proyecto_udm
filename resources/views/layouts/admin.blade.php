@@ -35,7 +35,7 @@
                 <div class="sidebar-section">
                     <h3 class="section-title">Personal</h3>
                     <ul class="sidebar-menu">
-                        <li class="sidebar-menu-item {{ request()->is('admin/tablero*') ? 'active' : '' }}">
+                        <li class="sidebar-menu-item {{ (request()->is('admin/tablero') || request()->is('admin/tablero/actualizar')) ? 'active' : '' }}">
                             <a href="{{ url('admin/tablero') }}">
                                 <i class="fas fa-tachometer-alt"></i>
                                 <span>Tablero</span>
@@ -58,13 +58,13 @@
                 <div class="sidebar-section">
                     <h3 class="section-title">Gestión Clínica</h3>
                     <ul class="sidebar-menu">
-                        <li class="sidebar-menu-item {{ request()->is('admin/tablero/citas*') ? 'active' : '' }}">
+                        <li class="sidebar-menu-item {{ request()->is('admin/tablero/citas-todas') ? 'active' : '' }}">
                             <a href="{{ url('admin/tablero/citas-todas') }}">
                                 <i class="fas fa-calendar-check"></i>
                                 <span>Citas</span>
                             </a>
                         </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/tablero/seguimiento*') ? 'active' : '' }}">
+                        <li class="sidebar-menu-item {{ request()->is('admin/tablero/seguimiento-todos') ? 'active' : '' }}">
                             <a href="{{ url('admin/tablero/seguimiento-todos') }}">
                                 <i class="fas fa-user-injured"></i>
                                 <span>Pacientes en Seguimiento</span>
@@ -116,20 +116,14 @@
             <!-- Top Bar -->
             <header class="admin-header">
                 <div class="breadcrumb">
-                    <a href="{{ url('admin/dashboard') }}">
+                    <a href="{{ url('/') }}">
                         <i class="fas fa-home"></i>
+                        Dashboard
                     </a>
                     @yield('breadcrumb')
                 </div>
                 
                 <div class="header-actions">
-                    <div class="search-container">
-                        <input type="text" placeholder="Buscar..." class="search-input">
-                        <button class="search-button">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                    
                     <div class="header-notifications">
                         <a href="#" class="notification-icon">
                             <i class="fas fa-bell"></i>
