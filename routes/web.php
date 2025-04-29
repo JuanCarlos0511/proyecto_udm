@@ -149,6 +149,7 @@ Route::get('/appointment-clinic', [AppointmentController::class, 'create'])->nam
 Route::get('/appointment-home', function () {
     return view('appointment-home');
 });
+Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointment.store');
 
 Route::get('/history', function () {
     return view('history');

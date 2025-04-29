@@ -276,9 +276,64 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Here you would normally submit the form data to the server
-        // For now, we'll just show the confirmation modal
-        confirmationModal.classList.add('active');
+        // Collect form data
+        const formData = new FormData();
+        
+        // User data
+        formData.append('user[name]', document.getElementById('nombre').value);
+        formData.append('user[age]', document.getElementById('edad').value);
+        formData.append('user[email]', document.getElementById('email').value);
+        formData.append('user[phoneNumber]', document.getElementById('telefono').value);
+        
+        // Datos específicos de cita a domicilio
+        const direccionCompleta = document.getElementById('direccion').value;
+        const referencias = document.getElementById('referencias').value || '';
+        const direccionConReferencias = direccionCompleta + (referencias ? ' (Referencias: ' + referencias + ')' : '');
+        
+        // User emergency contact (usando la dirección como contacto de emergencia para citas a domicilio)
+        formData.append('user[emergency_contact_name]', 'Dirección de servicio');
+        formData.append('user[emergency_contact_phone]', document.getElementById('telefono').value);
+        formData.append('user[emergency_contact_relationship]', direccionConReferencias);
+        
+        // Appointment data
+        formData.append('date', selectedDate.toISOString().split('T')[0] + ' ' + selectedTime + ':00');
+        formData.append('subject', document.getElementById('especialidad').value);
+        formData.append('status', 'Solicitado');
+        formData.append('modality', 'Domicilio');
+        formData.append('price', '450'); // Precio base para consulta a domicilio
+        
+        // Diagnóstico si existe
+        const padecimientoSi = document.getElementById('si');
+        if (padecimientoSi.checked) {
+            formData.append('diagnosis', document.getElementById('detalles').value);
+        }
+        
+        // Obtener el token CSRF
+        const token = document.querySelector('input[name="_token"]').value;
+        formData.append('_token', token);
+        
+        // Submit the form data using fetch API
+        fetch('/appointments', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': token
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al agendar la cita');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Cita a domicilio agendada:', data);
+            confirmationModal.classList.add('active');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Hubo un error al agendar la cita a domicilio. Por favor intente nuevamente.');
+        });
     }
 
     function validateForm() {
