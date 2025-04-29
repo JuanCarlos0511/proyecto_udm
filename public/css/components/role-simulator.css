@@ -1,0 +1,67 @@
+/* Role Simulator Styles */
+.role-indicator {
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.role-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+}
+
+.role-admin {
+    background-color: #4a6cf7;
+}
+
+.role-doctor {
+    background-color: #28a745;
+}
+
+.role-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.role-switcher select {
+    margin-left: 8px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+}
+
+.role-switcher select:focus {
+    outline: none;
+    border-color: #4a6cf7;
+}
+
+/* Dropdown menu styles */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 1000;
+    min-width: 10rem;
+    padding: 0.5rem 0;
+    margin: 0.125rem 0 0;
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.175);
+}
+
+.dropdown-menu.show {
+    display: block;
+}

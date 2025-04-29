@@ -13,6 +13,7 @@
     <!-- UI Components -->
     <link rel="stylesheet" href="{{ asset('css/components/buttons.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/profile-indicator.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/role-simulator.css') }}">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -176,6 +177,7 @@
     </div>
 
     <script src="{{ asset('js/admin.js') }}"></script>
+    <script src="{{ asset('js/role-simulator.js') }}"></script>
     @yield('scripts')
 </body>
 </html>

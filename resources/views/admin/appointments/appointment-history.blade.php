@@ -142,7 +142,6 @@
                         <th>Hora</th>
                         <th>Servicio</th>
                         <th>Estado</th>
-                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -252,19 +251,6 @@
                         <td>3:30 PM</td>
                         <td>Ortodoncia</td>
                         <td><span class="appointment-status status-pending">Pendiente</span></td>
-                        <td>
-                            <div class="appointment-actions">
-                                <div class="action-button">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
-                        </td>
                     </tr>
                 </tbody>
             </table>

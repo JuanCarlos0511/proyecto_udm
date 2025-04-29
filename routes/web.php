@@ -113,8 +113,8 @@ Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@
 
 // Rutas para citas
 Route::get('/admin/tablero/citas-todas', function() {
-    return view('admin.appointments.appointment-history');
-})->name('admin.appointment-history');
+    return view('admin.appointments.all-appointments');
+})->name('admin.appointment-all-appointments');
 
 
 Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index']);
