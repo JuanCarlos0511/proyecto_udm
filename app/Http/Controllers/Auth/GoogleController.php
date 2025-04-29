@@ -49,6 +49,34 @@ class GoogleController extends Controller
                 return redirect('/')->with('success', 'Has iniciado sesión correctamente');
             } else {
                 // Verificar si el email ya está registrado
+                $userByEmail = User::where('email', $user->email)->first();
+                
+                if ($userByEmail) {
+                    // Si existe un usuario con ese email, actualizar su google_id
+                    $userByEmail->google_id = $user->id;
+                    $userByEmail->save();
+                    \Illuminate\Support\Facades\Log::info('Usuario existente actualizado con google_id');
+                    Auth::login($userByEmail);
+                    return redirect('/')->with('success', 'Has iniciado sesión correctamente');
+                }
+                
+                // Si no existe, crear nuevo usuario
+                $newUser = User::create([
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'google_id' => $user->id,
+                    'password' => bcrypt(str_random(16))
+                ]);
+                
+                \Illuminate\Support\Facades\Log::info('Nuevo usuario creado con google_id');
+                Auth::login($newUser);
+                return redirect('/')->with('success', 'Te has registrado correctamente');
+            }
+        } catch (Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error en autenticación con Google: ' . $e->getMessage());
+            return redirect('/login')->with('error', 'Ha ocurrido un error al iniciar sesión con Google');
+        }
+    }
                 $existingUser = User::where('email', $user->email)->first();
                 
                 if ($existingUser) {
