@@ -160,6 +160,33 @@ select.form-control {
     font-size: 0.875rem;
 }
 
+.text-warning {
+    color: #c70505ca !important;
+    font-weight: 500;
+}
+
+.text-warning i {
+    margin-right: 5px;
+}
+
+.profile-optional-missing {
+    margin-left: 8px;
+    color: #2309ebcf;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
 .form-actions {
     display: flex;
     justify-content: space-between;
