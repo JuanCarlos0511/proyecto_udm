@@ -313,14 +313,111 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function submitAppointment() {
+        console.log('Iniciando proceso de envío de cita...');
+        
         // Validate form
         if (!validateForm()) {
+            console.log('Validación del formulario falló');
             return;
         }
         
-        // Here you would normally submit the form data to the server
-        // For now, we'll just show the confirmation modal
-        confirmationModal.classList.add('active');
+        console.log('Validación del formulario exitosa');
+        
+        // Verificar que la fecha y hora estén seleccionadas
+        if (!selectedDate) {
+            console.error('Error: No hay fecha seleccionada');
+            alert('Por favor seleccione una fecha para la cita');
+            return;
+        }
+        
+        if (!selectedTime) {
+            console.error('Error: No hay hora seleccionada');
+            alert('Por favor seleccione una hora para la cita');
+            return;
+        }
+        
+        // Prepare data in JSON format
+        const userData = {
+            user: {
+                name: document.getElementById('nombre').value,
+                age: document.getElementById('edad').value,
+                email: document.getElementById('email').value,
+                phoneNumber: document.getElementById('telefono').value,
+                emergency_contact_name: document.getElementById('contact_name').value,
+                emergency_contact_phone: document.getElementById('contact_phone').value,
+                emergency_contact_relationship: document.getElementById('contact_relationship').value
+            },
+            date: selectedDate.toISOString().split('T')[0] + ' ' + selectedTime + ':00',
+            subject: document.getElementById('especialidad').value,
+            status: 'Solicitado',
+            modality: 'Consultorio',
+            price: 350, // Precio base para consulta en clínica
+            doctor_id: document.getElementById('doctor').value
+        };
+        
+        // Diagnóstico si existe
+        const padecimientoSi = document.getElementById('si');
+        if (padecimientoSi && padecimientoSi.checked) {
+            userData.diagnosis = document.getElementById('detalles').value;
+        }
+        
+        // Referido por (si existe)
+        const referidoPor = document.getElementById('referred_by');
+        if (referidoPor && referidoPor.value) {
+            userData.referred_by = referidoPor.value;
+        }
+        
+        console.log('Datos de cita a enviar:', userData);
+        
+        // Obtener el token CSRF
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (!token) {
+            console.error('Error: No se encontró el token CSRF');
+            alert('Error de seguridad: No se encontró el token CSRF. Por favor, recargue la página.');
+            return;
+        }
+        
+        console.log('Token CSRF encontrado:', token);
+        
+        // Submit the form data using fetch API
+        fetch('/api/appointments', {
+            method: 'POST',
+            body: JSON.stringify(userData),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            console.log('Respuesta del servidor:', response);
+            
+            // Mostrar todos los detalles de la respuesta
+            return response.text().then(text => {
+                try {
+                    const data = text ? JSON.parse(text) : {};
+                    console.log('Respuesta completa:', data);
+                    
+                    if (!response.ok) {
+                        throw new Error(JSON.stringify(data));
+                    }
+                    
+                    return data;
+                } catch (e) {
+                    console.error('Error al parsear la respuesta:', e);
+                    console.log('Texto de respuesta crudo:', text);
+                    throw new Error('Error al procesar la respuesta del servidor');
+                }
+            });
+        })
+        .then(data => {
+            console.log('Cita en clínica agendada exitosamente:', data);
+            confirmationModal.classList.add('active');
+        })
+        .catch(error => {
+            console.error('Error completo:', error);
+            alert('Hubo un error al agendar la cita en clínica. Por favor intente nuevamente. Revise la consola para más detalles.');
+        });
     }
 
     function validateForm() {
@@ -331,25 +428,69 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         
         let isValid = true;
+        let firstErrorField = null;
         
+        // Clear all previous errors first
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.classList.remove('error');
+        });
+        
+        // Validate each required field
         requiredFields.forEach(field => {
             const element = document.getElementById(field);
             if (!element.value.trim()) {
                 element.classList.add('error');
+                if (!firstErrorField) {
+                    firstErrorField = element;
+                }
                 isValid = false;
-            } else {
-                element.classList.remove('error');
+            } else if (field === 'email') {
+                // Email validation regex
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(element.value.trim())) {
+                    element.classList.add('error');
+                    if (!firstErrorField) {
+                        firstErrorField = element;
+                    }
+                    isValid = false;
+                }
+            } else if (field === 'edad') {
+                // Age validation
+                const age = parseInt(element.value);
+                if (isNaN(age) || age <= 0 || age > 120) {
+                    element.classList.add('error');
+                    if (!firstErrorField) {
+                        firstErrorField = element;
+                    }
+                    isValid = false;
+                }
+            } else if (field === 'telefono' || field === 'contact_phone') {
+                // Phone validation - only numbers and at least 10 digits
+                const phoneRegex = /^\d{10,}$/;
+                if (!phoneRegex.test(element.value.replace(/\D/g, ''))) {
+                    element.classList.add('error');
+                    if (!firstErrorField) {
+                        firstErrorField = element;
+                    }
+                    isValid = false;
+                }
             }
         });
         
         // Check if date and time are selected
         if (!selectedDate) {
-            alert('Por favor, seleccione una fecha para la cita');
+            dateSelectBtn.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = dateSelectBtn;
+            }
             isValid = false;
         }
         
         if (!selectedTime) {
-            alert('Por favor, seleccione una hora para la cita');
+            timeSelectBtn.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = timeSelectBtn;
+            }
             isValid = false;
         }
         
@@ -359,9 +500,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (padecimientoSi.checked && !detalles.value.trim()) {
             detalles.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = detalles;
+            }
             isValid = false;
-        } else {
-            detalles.classList.remove('error');
+        }
+        
+        // Focus and scroll to the first error field
+        if (firstErrorField) {
+            firstErrorField.focus();
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         
         return isValid;

@@ -32,29 +32,34 @@
 
                 <!-- Información Personal -->
                 <div class="modern-form-group">
-                    <label for="nombre">Nombre completo {{ Auth::check() ? '(Autenticado)' : '' }}</label>
+                    <label for="nombre" class="required-field">Nombre completo {{ Auth::check() ? '(Autenticado)' : '' }}</label>
                     <input type="text" id="nombre" name="nombre" required {{ Auth::check() ? 'readonly' : '' }}>
+                    <span class="error-message">Este campo es obligatorio</span>
                 </div>
 
                 <div class="modern-form-row">
                     <div class="modern-form-group">
-                        <label for="edad">Edad</label>
+                        <label for="edad" class="required-field">Edad</label>
                         <input type="number" id="edad" name="edad" required {{ Auth::check() ? 'readonly' : '' }}>
+                        <span class="error-message">Este campo es obligatorio</span>
                     </div>
                     <div class="modern-form-group">
-                        <label for="telefono">Teléfono</label>
+                        <label for="telefono" class="required-field">Teléfono</label>
                         <input type="tel" id="telefono" name="telefono" required {{ Auth::check() ? 'readonly' : '' }}>
+                        <span class="error-message">Este campo es obligatorio</span>
                     </div>
                 </div>
 
                 <div class="modern-form-group">
-                    <label for="email">Correo electrónico</label>
+                    <label for="email" class="required-field">Correo electrónico</label>
                     <input type="email" id="email" name="email" required {{ Auth::check() ? 'readonly' : '' }}>
+                    <span class="error-message">Introduzca un correo electrónico válido</span>
                 </div>
 
                 <div class="modern-form-group">
-                    <label for="direccion">Dirección completa</label>
+                    <label for="direccion" class="required-field">Dirección completa</label>
                     <input type="text" id="direccion" name="direccion" required placeholder="Calle, número, colonia, código postal">
+                    <span class="error-message">Este campo es obligatorio</span>
                     <small>Asegúrese de proporcionar una dirección exacta para el servicio a domicilio</small>
                 </div>
                 
@@ -71,7 +76,7 @@
             
             <!-- Continuación del formulario -->
             <div class="modern-form-group">
-                <label for="especialidad">Especialidad requerida</label>
+                <label for="especialidad" class="required-field">Especialidad requerida</label>
                 <select id="especialidad" name="especialidad" required>
                     <option value="">Seleccione una especialidad</option>
                     <option value="electroterapia">Electroterapia</option>
@@ -79,6 +84,7 @@
                     <option value="mecanoterapia">Mecanoterapia</option>
                     <option value="atencion-integral">Atención Integral</option>
                 </select>
+                <span class="error-message">Seleccione una especialidad</span>
             </div>
 
             <div class="modern-form-group">
@@ -96,8 +102,9 @@
             </div>
 
             <div class="modern-form-group" id="padecimientoDetails" style="display: none;">
-                <label for="detalles">Por favor, describa su padecimiento:</label>
+                <label for="detalles" class="required-field">Por favor, describa su padecimiento:</label>
                 <textarea id="detalles" name="detalles" rows="4"></textarea>
+                <span class="error-message">Describa su padecimiento</span>
             </div>
 
             <div class="modern-form-group">

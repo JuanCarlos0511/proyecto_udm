@@ -343,25 +343,69 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         
         let isValid = true;
+        let firstErrorField = null;
         
+        // Clear all previous errors first
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.classList.remove('error');
+        });
+        
+        // Validate each required field
         requiredFields.forEach(field => {
             const element = document.getElementById(field);
             if (!element.value.trim()) {
                 element.classList.add('error');
+                if (!firstErrorField) {
+                    firstErrorField = element;
+                }
                 isValid = false;
-            } else {
-                element.classList.remove('error');
+            } else if (field === 'email') {
+                // Email validation regex
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(element.value.trim())) {
+                    element.classList.add('error');
+                    if (!firstErrorField) {
+                        firstErrorField = element;
+                    }
+                    isValid = false;
+                }
+            } else if (field === 'edad') {
+                // Age validation
+                const age = parseInt(element.value);
+                if (isNaN(age) || age <= 0 || age > 120) {
+                    element.classList.add('error');
+                    if (!firstErrorField) {
+                        firstErrorField = element;
+                    }
+                    isValid = false;
+                }
+            } else if (field === 'telefono') {
+                // Phone validation - only numbers and at least 10 digits
+                const phoneRegex = /^\d{10,}$/;
+                if (!phoneRegex.test(element.value.replace(/\D/g, ''))) {
+                    element.classList.add('error');
+                    if (!firstErrorField) {
+                        firstErrorField = element;
+                    }
+                    isValid = false;
+                }
             }
         });
         
         // Check if date and time are selected
         if (!selectedDate) {
-            alert('Por favor, seleccione una fecha para la cita');
+            dateSelectBtn.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = dateSelectBtn;
+            }
             isValid = false;
         }
         
         if (!selectedTime) {
-            alert('Por favor, seleccione una hora para la cita');
+            timeSelectBtn.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = timeSelectBtn;
+            }
             isValid = false;
         }
         
@@ -371,9 +415,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (padecimientoSi.checked && !detalles.value.trim()) {
             detalles.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = detalles;
+            }
             isValid = false;
-        } else {
-            detalles.classList.remove('error');
+        }
+        
+        // Focus and scroll to the first error field
+        if (firstErrorField) {
+            firstErrorField.focus();
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         
         return isValid;

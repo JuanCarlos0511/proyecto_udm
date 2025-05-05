@@ -25,7 +25,8 @@ class Appointment extends Model
         'diagnosis',
         'referred_by',
         'contact_name',
-        'contact_relationship'
+        'contact_relationship',
+        'doctor_id'
     ];
 
     /**

@@ -4,6 +4,7 @@
 
 @section('extra-css')
     <link rel="stylesheet" href="{{ asset('css/components/modern-appointment.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('container-class', 'modern-appointment-page')
@@ -35,47 +36,59 @@
 
                 <!-- Información Personal -->
                 <div class="modern-form-group">
-                    <label for="nombre">Nombre completo {{ Auth::check() ? '(Autenticado)' : '' }}</label>
+                    <label for="nombre" class="required-field">Nombre completo {{ Auth::check() ? '(Autenticado)' : '' }}</label>
                     <input type="text" id="nombre" name="nombre" required {{ Auth::check() ? 'readonly' : '' }}>
+                    <span class="error-message">Este campo es obligatorio</span>
                 </div>
 
                 <div class="modern-form-row">
                     <div class="modern-form-group">
-                        <label for="edad">Edad</label>
+                        <label for="edad" class="required-field">Edad</label>
                         <input type="number" id="edad" name="edad" required {{ Auth::check() ? 'readonly' : '' }}>
+                        <span class="error-message">Este campo es obligatorio</span>
                     </div>
                     <div class="modern-form-group">
-                        <label for="telefono">Teléfono</label>
+                        <label for="telefono" class="required-field">Teléfono</label>
                         <input type="tel" id="telefono" name="telefono" required {{ Auth::check() ? 'readonly' : '' }}>
+                        <span class="error-message">Este campo es obligatorio</span>
                     </div>
                 </div>
 
                 <div class="modern-form-group">
-                    <label for="email">Correo electrónico</label>
+                    <label for="email" class="required-field">Correo electrónico</label>
                     <input type="email" id="email" name="email" required {{ Auth::check() ? 'readonly' : '' }}>
+                    <span class="error-message">Introduzca un correo electrónico válido</span>
                 </div>
 
-                <div class="modern-form-row">
-                    <div class="modern-form-group">
-                        <label for="contact_name">Nombre de contacto de emergencia</label>
-                        <input type="text" id="contact_name" name="contact_name" required>
+                <!-- Contacto de emergencia - Campos en columnas separadas -->
+                <div class="emergency-contact-section">
+                    <h3 class="modern-form-subtitle">Contacto de Emergencia</h3>
+                    
+                    <div class="contact-row-container">
+                        <div class="modern-form-group">
+                            <label for="contact_name" class="required-field">Nombre de contacto de emergencia</label>
+                            <input type="text" id="contact_name" name="contact_name" required>
+                            <span class="error-message">Este campo es obligatorio</span>
+                        </div>
+                        <div class="modern-form-group">
+                            <label for="contact_relationship" class="required-field">Parentesco</label>
+                            <input type="text" id="contact_relationship" name="contact_relationship" required>
+                            <span class="error-message">Este campo es obligatorio</span>
+                        </div>
                     </div>
-                    <div class="modern-form-group">
-                        <label for="contact_relationship">Parentesco</label>
-                        <input type="text" id="contact_relationship" name="contact_relationship" required>
-                    </div>
-                </div>
 
-                <div class="modern-form-group">
-                    <label for="contact_phone">Teléfono de contacto de emergencia</label>
-                    <input type="tel" id="contact_phone" name="contact_phone" required>
+                    <div class="modern-form-group">
+                        <label for="contact_phone" class="required-field">Teléfono de contacto de emergencia</label>
+                        <input type="tel" id="contact_phone" name="contact_phone" required>
+                        <span class="error-message">Este campo es obligatorio</span>
+                    </div>
                 </div>
 
                 <!-- Detalles de la Cita -->
                 <h3 class="modern-form-subtitle">Detalles de la Cita</h3>
                 
                 <div class="modern-form-group">
-                    <label for="especialidad">Especialidad requerida</label>
+                    <label for="especialidad" class="required-field">Especialidad requerida</label>
                     <select id="especialidad" name="especialidad" required>
                         <option value="">Seleccione una especialidad</option>
                         <option value="electroterapia">Electroterapia</option>
@@ -83,6 +96,18 @@
                         <option value="mecanoterapia">Mecanoterapia</option>
                         <option value="atencion-integral">Atención Integral</option>
                     </select>
+                    <span class="error-message">Seleccione una especialidad</span>
+                </div>
+                
+                <div class="modern-form-group">
+                    <label for="doctor" class="required-field">Seleccionar Doctor</label>
+                    <select id="doctor" name="doctor" required>
+                        <option value="">Seleccione un doctor</option>
+                        <option value="3">Rosa Elba Martínez</option>
+                        <option value="5">Isaac Solís Martínez</option>
+                        <option value="6">Karla Lorena Martínez Ávila</option>
+                    </select>
+                    <span class="error-message">Seleccione un doctor</span>
                 </div>
             </form>
         </div>
@@ -112,8 +137,9 @@
             </div>
 
             <div class="modern-form-group" id="padecimientoDetails" style="display: none;">
-                <label for="detalles">Por favor, describa su padecimiento:</label>
+                <label for="detalles" class="required-field">Por favor, describa su padecimiento:</label>
                 <textarea id="detalles" name="detalles" rows="4"></textarea>
+                <span class="error-message">Describa su padecimiento</span>
             </div>
 
             <div class="modern-form-group">

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentController extends Controller
 {
@@ -28,6 +29,9 @@ class AppointmentController extends Controller
         DB::beginTransaction();
         
         try {
+            // Log para depuración
+            Log::info('Datos recibidos:', $request->all());
+            
             // Validate user data
             $userData = $request->validate([
                 'user.name' => 'required|string|max:255',
@@ -38,10 +42,13 @@ class AppointmentController extends Controller
                 'user.emergency_contact_phone' => 'required|string|max:20',
                 'user.emergency_contact_relationship' => 'required|string|max:255'
             ]);
+            
+            Log::info('Datos de usuario validados correctamente');
 
             // If user is authenticated, use their ID
             if (Auth::check()) {
                 $user = Auth::user();
+                Log::info('Usuario autenticado:', ['id' => $user->id]);
                 // Update user's emergency contact info if provided
                 $user->update([
                     'emergency_contact_name' => $userData['user']['emergency_contact_name'],
@@ -51,6 +58,7 @@ class AppointmentController extends Controller
             } else {
                 // Check if user exists
                 $user = User::where('email', $userData['user']['email'])->first();
+                Log::info('Buscando usuario por email:', ['email' => $userData['user']['email'], 'encontrado' => (bool)$user]);
 
                 if (!$user) {
                     // Create new user
@@ -66,24 +74,33 @@ class AppointmentController extends Controller
                         'role' => 'paciente',
                         'status' => 'active'
                     ]);
+                    Log::info('Nuevo usuario creado:', ['id' => $user->id]);
                 }
             }
 
             // Validate appointment data
-            $appointmentData = $request->validate([
-                'date' => 'required|date',
-                'subject' => 'required|string|max:255',
-                'status' => 'required|in:Solicitado,Agendado,Completado,Cancelado',
-                'modality' => 'required|in:Consultorio,Domicilio',
-                'price' => 'required|numeric|min:0',
-                'diagnosis' => 'nullable|string|max:255',
-                'referred_by' => 'nullable|string|max:255'
-            ]);
+            try {
+                $appointmentData = $request->validate([
+                    'date' => 'required|string',
+                    'subject' => 'required|string|max:255',
+                    'status' => 'required|in:Solicitado,Agendado,Completado,Cancelado',
+                    'modality' => 'required|in:Consultorio,Domicilio',
+                    'price' => 'required|numeric|min:0',
+                    'diagnosis' => 'nullable|string|max:255',
+                    'referred_by' => 'nullable|string|max:255',
+                    'doctor_id' => 'nullable|exists:users,id'
+                ]);
+                Log::info('Datos de cita validados correctamente');
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                Log::error('Error de validación de cita:', ['errors' => $e->errors()]);
+                throw $e;
+            }
 
             // Create appointment
             $appointment = new Appointment($appointmentData);
             $appointment->user_id = $user->id;
             $appointment->save();
+            Log::info('Cita guardada correctamente:', ['id' => $appointment->id]);
 
             DB::commit();
 
@@ -94,6 +111,7 @@ class AppointmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error al agendar cita:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'message' => 'Error al agendar la cita',
                 'error' => $e->getMessage()
@@ -109,7 +127,7 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment)
     {
         $request->validate([
-            'date' => 'date',
+            'date' => 'string',
             'subject' => 'string|max:255',
             'status' => 'in:Solicitado,Agendado,Completado,Cancelado',
             'modality' => 'in:Consultorio,Domicilio',
