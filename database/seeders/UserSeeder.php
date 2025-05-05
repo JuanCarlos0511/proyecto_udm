@@ -14,43 +14,79 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin user
-        User::create([
-            'name' => 'Admin User',
-            'age' => 35,
-            'role' => 'admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'adress' => 'Admin Street 123',
-            'status' => 'active',
-            'phoneNumber' => '123-456-7890',
-        ]);
+        // Actualizar o crear usuarios con nuevas contraseñas
         
-        // Create doctor user
-        User::create([
-            'name' => 'Doctor User',
-            'age' => 40,
-            'role' => 'doctor',
-            'email' => 'doctor@example.com',
-            'password' => Hash::make('password'),
-            'adress' => 'Doctor Avenue 456',
-            'status' => 'active',
-            'phoneNumber' => '234-567-8901',
-        ]);
+        // Rosa Elba Martinez (Doctor)
+        User::updateOrCreate(
+            ['email' => 'rosa.martinez@clinicamiel.com'],
+            [
+                'name' => 'Rosa Elba Martinez',
+                'age' => 45,
+                'role' => 'doctor',
+                'password' => Hash::make('RosaDoc2025!'),
+                'adress' => 'Pedro José Méndez, 89240 Tampico, Tamaulipas',
+                'status' => 'active',
+                'phoneNumber' => '5551234567',
+                'email_verified_at' => now(),
+            ]
+        );
         
-        // Create patient user
-        User::create([
-            'name' => 'Patient User',
-            'age' => 28,
-            'role' => 'patient',
-            'email' => 'patient@example.com',
-            'password' => Hash::make('password'),
-            'adress' => 'Patient Boulevard 789',
-            'status' => 'active',
-            'phoneNumber' => '345-678-9012',
-        ]);
+        // Mauricio Solis (Admin)
+        User::updateOrCreate(
+            ['email' => 'mauricio.solis@clinicamiel.com'],
+            [
+                'name' => 'Mauricio Solis',
+                'age' => 38,
+                'role' => 'admin',
+                'password' => Hash::make('MauAdmin2025#'),
+                'adress' => 'Pedro José Méndez, 89240 Tampico, Tamaulipas',
+                'status' => 'active',
+                'phoneNumber' => '5552345678',
+                'email_verified_at' => now(),
+            ]
+        );
         
-        // Create additional users
-        User::factory(5)->create();
+        // Isaac Solis Martinez (Doctor)
+        User::updateOrCreate(
+            ['email' => 'isaac.solis@clinicamiel.com'],
+            [
+                'name' => 'Isaac Solis Martinez',
+                'age' => 42,
+                'role' => 'doctor',
+                'password' => Hash::make('IsaacDoc2025@'),
+                'adress' =>'Pedro José Méndez, 89240 Tampico, Tamaulipas',
+                'status' => 'active',
+                'phoneNumber' => '5553456789',
+                'email_verified_at' => now(),
+            ]
+        );
+        
+        // Karla Lorena Martinez Avila (Doctor)
+        User::updateOrCreate(
+            ['email' => 'karla.martinez@clinicamiel.com'],
+            [
+                'name' => 'Karla Lorena Martinez Avila',
+                'age' => 39,
+                'role' => 'doctor',
+                'password' => Hash::make('KarlaDoc2025&'),
+                'adress' => 'Pedro José Méndez, 89240 Tampico, Tamaulipas',
+                'status' => 'active',
+                'phoneNumber' => '5554567890',
+                'email_verified_at' => now(),
+            ]
+        );
+        
+        // Crear un usuario paciente de ejemplo
+        // User::create([
+        //     'name' => 'Paciente Ejemplo',
+        //     'age' => 30,
+        //     'role' => 'paciente',
+        //     'email' => 'paciente@ejemplo.com',
+        //     'password' => Hash::make('password'),
+        //     'adress' => 'Calle Paciente 123, Colonia Salud',
+        //     'status' => 'active',
+        //     'phoneNumber' => '5555678901',
+        //     'email_verified_at' => now(),
+        // ]);
     }
 }
