@@ -9,16 +9,23 @@
 body {
     background-color: #f3f5f7;
     color: #333;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px; /* Igual al padding-top del body para compensar el header fijo */
+    height: 100%;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
 }

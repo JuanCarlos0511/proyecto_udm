@@ -82,15 +82,57 @@
         </div>
     </header>
     <div class="container @yield('container-class')">
+        <div class="content-wrapper" style="padding: 0 20px; max-width: 1200px; width: 100%; margin: 0 auto; flex: 1;">
+            @yield('content')
+        </div>
 
-        @yield('content')
-
-        <footer>
-            <div class="contact-info">
-                <i class="fas fa-phone"></i>
-                <p>4521 346</p>
-                <p>Clínica Miel | Dirección Física</p>
-                <p>Horario: Lunes a Viernes 8:00 - 20:00 hrs.</p>
+        <footer class="modern-footer">
+            <div class="footer-container">
+                <div class="footer-column">
+                    <h3>MIEL</h3>
+                    <ul>
+                        <li><a href="{{ url('/') }}">Pacientes</a></li>
+                        <li><a href="{{ url('/sobre-nosotros') }}">Nosotros</a></li>
+                        <li><a href="{{ url('/appointment') }}">Agendar</a></li>
+                        <li><a href="{{ url('/history') }}">Historial</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>RECURSOS</h3>
+                    <ul>
+                        <li><a href="#">Recursos médicos</a></li>
+                        <li><a href="#">Especialidades</a></li>
+                        <li><a href="#">Guías</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>CONTACTO</h3>
+                    <ul>
+                        <li><a href="#">Contáctanos</a></li>
+                        <li><a href="#">Términos de Servicio</a></li>
+                        <li><a href="#">Privacidad</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column newsletter">
+                    <p>Suscríbete a nuestro newsletter</p>
+                    <div class="newsletter-form">
+                        <input type="email" placeholder="Tu email" required>
+                        <button type="submit">Suscribirse</button>
+                    </div>
+                    <div class="social-links">
+                        <p>Síguenos</p>
+                        <div class="social-icons">
+                            <a href="#" class="social-icon facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-icon twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-icon linkedin"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </footer>
     </div>
