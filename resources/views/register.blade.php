@@ -52,11 +52,6 @@
                     <img src="{{ asset('assets/google-icon.png') }}" alt="Google">
                     Continuar con Google
                 </a>
-                
-                <button class="social-login-btn apple-btn">
-                    <img src="{{ asset('assets/apple-icon.png') }}" alt="Apple">
-                    Continuar con Apple
-                </button>
             </div>
             
             <div class="login-divider fade-in-element">

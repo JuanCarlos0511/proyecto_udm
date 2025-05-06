@@ -36,11 +36,6 @@
                     <img src="{{ asset('assets/google-icon.png') }}" alt="Google">
                     Continuar con Google
                 </a>
-                
-                <button class="social-login-btn apple-btn">
-                    <img src="{{ asset('assets/apple-icon.png') }}" alt="Apple">
-                    Continuar con Apple
-                </button>
             </div>
             
             <div class="login-divider">
@@ -78,7 +73,7 @@
                 </div>
                 
                 <div class="forgot-password">
-                    <a href="{{ url('/forgot-password') }}">¿Olvidaste tu contraseña?</a>
+                    <a href="{{ url('/forgot-password') }}">¿Olvidaste tu contraseña? Contacta con nuestro administrador</a>
                 </div>
                 
                 <button type="submit" class="login-btn">Iniciar Sesión</button>

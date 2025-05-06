@@ -21,7 +21,13 @@ class AppointmentController extends Controller
     public function create()
     {
         $user = Auth::user();
-        return view('appointment-clinic', compact('user'));
+        
+        // Fetch doctors (users with role 'doctor' or 'administrador')
+        $doctors = User::whereIn('role', ['doctor', 'admin'])
+                      ->where('status', 'active')
+                      ->get(['id', 'name']);
+        
+        return view('appointment-clinic', compact('user', 'doctors'));
     }
 
     public function store(Request $request)
@@ -96,11 +102,19 @@ class AppointmentController extends Controller
                 throw $e;
             }
 
-            // Create appointment
+            // Create appointment for the patient
             $appointment = new Appointment($appointmentData);
             $appointment->user_id = $user->id;
             $appointment->save();
-            Log::info('Cita guardada correctamente:', ['id' => $appointment->id]);
+            Log::info('Cita del paciente guardada correctamente:', ['id' => $appointment->id]);
+            
+            // If a doctor is selected, create a duplicate appointment for the doctor
+            if (isset($appointmentData['doctor_id']) && !empty($appointmentData['doctor_id'])) {
+                $doctorAppointment = new Appointment($appointmentData);
+                $doctorAppointment->user_id = $appointmentData['doctor_id']; // Use doctor's user_id
+                $doctorAppointment->save();
+                Log::info('Cita del doctor guardada correctamente:', ['id' => $doctorAppointment->id]);
+            }
 
             DB::commit();
 

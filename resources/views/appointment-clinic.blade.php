@@ -101,11 +101,11 @@
                 
                 <div class="modern-form-group">
                     <label for="doctor" class="required-field">Seleccionar Doctor</label>
-                    <select id="doctor" name="doctor" required>
+                    <select id="doctor" name="doctor_id" required>
                         <option value="">Seleccione un doctor</option>
-                        <option value="3">Rosa Elba Martínez</option>
-                        <option value="5">Isaac Solís Martínez</option>
-                        <option value="6">Karla Lorena Martínez Ávila</option>
+                        @foreach($doctors as $doctor)
+                            <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
+                        @endforeach
                     </select>
                     <span class="error-message">Seleccione un doctor</span>
                 </div>
