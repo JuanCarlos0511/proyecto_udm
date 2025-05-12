@@ -101,10 +101,10 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
         Route::resource('/admin/facturas', 'App\Http\Controllers\Admin\BillController', ['as' => 'admin'])->except(['index', 'store']);
         
         // Rutas para gestión de doctores
-        Route::get('/admin/doctores', function() {
-            return view('admin.doctors.doctors-list');
-        })->name('admin.doctors.index');
-        Route::resource('/admin/doctores', 'App\Http\Controllers\Admin\DoctorController', ['as' => 'admin'])->except(['index']);
+        Route::get('/admin/doctores', 'App\Http\Controllers\Admin\DoctorController@index')->name('admin.doctors.index');
+        Route::get('/admin/doctors/{id}/edit', 'App\Http\Controllers\Admin\DoctorController@edit')->name('admin.doctors.edit');
+        Route::put('/admin/doctors/{id}', 'App\Http\Controllers\Admin\DoctorController@update')->name('admin.doctors.update');
+        Route::post('/admin/doctores', 'App\Http\Controllers\Admin\DoctorController@store')->name('admin.doctors.store');
         Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@getDoctorsData')->name('admin.doctors.data');
         
         // Rutas para citas
