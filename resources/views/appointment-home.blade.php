@@ -27,6 +27,7 @@
                         'age' => Auth::user()->age,
                         'email' => Auth::user()->email,
                         'phoneNumber' => Auth::user()->phoneNumber,
+                        'adress' => Auth::user()->adress ?? '',
                     ]) }}">
                 @endif
 
