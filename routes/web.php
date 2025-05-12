@@ -87,14 +87,17 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     Route::post('/admin/reportes/data', 'App\Http\Controllers\Admin\ReportController@getAppointmentData')->name('admin.reports.data');
     
     // Rutas de facturas de administrador
-    Route::get('/admin/generar-facturas', function() {
+    Route::get('/admin/informacion-facturar', function() {
         return view('admin.billing.generate-bills');
     })->name('admin.bills.generate');
     
-    Route::post('/admin/generar-facturas', 'App\Http\Controllers\Admin\BillController@store')->name('admin.bills.store');
+    Route::post('/admin/informacion-facturar', 'App\Http\Controllers\Admin\BillController@store')->name('admin.bills.store');
     Route::get('/admin/facturas', function() {
         return view('admin.bills.bills-list');
     })->name('admin.bills.index');
+    
+    // Ruta para obtener los datos de facturas en formato JSON
+    Route::get('/admin/bills/data', 'App\Http\Controllers\Admin\BillController@getBillsData')->name('admin.bills.data');
     
     Route::resource('/admin/facturas', 'App\Http\Controllers\Admin\BillController', ['as' => 'admin'])->except(['index', 'store']);
     
@@ -125,6 +128,7 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     })->name('admin.patients.index');
     Route::resource('/admin/pacientes', 'App\Http\Controllers\Admin\PatientController', ['as' => 'admin'])->except(['index']);
     Route::get('/admin/pacientes-data', 'App\Http\Controllers\Admin\PatientController@getPatientsData')->name('admin.patients.data');
+    Route::get('/admin/pacientes-search', 'App\Http\Controllers\Admin\PatientSearchController@search')->name('admin.patients.search');
     Route::get('/admin/pacientes/{id}/perfil-info', 'App\Http\Controllers\Admin\PatientController@addProfileInfo')->name('admin.patients.profile-info');
     Route::put('/admin/pacientes/{id}/perfil-info', 'App\Http\Controllers\Admin\PatientController@updateProfileInfo')->name('admin.patients.update-profile-info');
     

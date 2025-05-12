@@ -37,38 +37,99 @@ class BillController extends Controller
      * Store a newly created bill in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'rfc' => 'required|string|max:13',
-            'codigo_postal' => 'required|string|max:10',
-            'cuenta_con_seguro' => 'required|boolean',
-            'regimen_fiscal' => 'required|string|max:255',
-            'cfdi' => 'required|string|max:255',
-            'status' => 'required|in:pendiente,realizada',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+        try {
+            // Registrar los datos recibidos para depuración
+            \Log::info('Datos recibidos en BillController@store:', [
+                'request_all' => $request->all(),
+                'is_ajax' => $request->ajax(),
+                'content_type' => $request->header('Content-Type'),
+                'user_id' => $request->user_id,
+                'cuenta_con_seguro' => $request->cuenta_con_seguro
+            ]);
+            
+            // Validar los datos
+            $validator = Validator::make($request->all(), [
+                'user_id' => 'required|exists:users,id',
+                'rfc' => 'required|string|max:13',
+                'codigo_postal' => 'required|string|max:10',
+                'cuenta_con_seguro' => 'sometimes|boolean',
+                'regimen_fiscal' => 'required|string|max:255',
+                'cfdi' => 'required|string|max:255',
+                'status' => 'sometimes|in:pendiente,realizada',
+            ]);
+    
+            // Si la validación falla
+            if ($validator->fails()) {
+                \Log::warning('Validación fallida en BillController@store:', [
+                    'errors' => $validator->errors()->toArray()
+                ]);
+                
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'errors' => $validator->errors()
+                    ], 422);
+                } else {
+                    return redirect()->back()
+                        ->withErrors($validator)
+                        ->withInput();
+                }
+            }
+    
+            // Preparar los datos para la factura
+            $billData = [
+                'user_id' => $request->user_id,
+                'rfc' => $request->rfc,
+                'codigo_postal' => $request->codigo_postal,
+                'regimen_fiscal' => $request->regimen_fiscal,
+                'cfdi' => $request->cfdi,
+                'status' => $request->status ?? 'pendiente',
+                'cuenta_con_seguro' => $request->has('cuenta_con_seguro') ? (bool)$request->cuenta_con_seguro : false,
+            ];
+            
+            \Log::info('Datos preparados para crear factura:', $billData);
+    
+            // Crear la factura
+            $bill = Bill::create($billData);
+            \Log::info('Factura creada con ID: ' . $bill->id);
+    
+            // Cargar la relación de usuario para la respuesta
+            $bill->load('user');
+    
+            // Devolver respuesta según el tipo de solicitud
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Factura creada exitosamente.',
+                    'bill' => $bill
+                ]);
+            } else {
+                return redirect()->route('admin.bills.index')
+                    ->with('success', 'Factura creada exitosamente.');
+            }
+        } catch (\Exception $e) {
+            // Registrar el error
+            \Log::error('Error en BillController@store: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Devolver respuesta de error
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al guardar la factura: ' . $e->getMessage()
+                ], 500);
+            } else {
+                return redirect()->back()
+                    ->with('error', 'Error al guardar la factura: ' . $e->getMessage())
+                    ->withInput();
+            }
         }
-
-        $bill = Bill::create([
-            'user_id' => $request->user_id,
-            'rfc' => $request->rfc,
-            'codigo_postal' => $request->codigo_postal,
-            'cuenta_con_seguro' => $request->cuenta_con_seguro,
-            'regimen_fiscal' => $request->regimen_fiscal,
-            'cfdi' => $request->cfdi,
-            'status' => $request->status,
-        ]);
-
-        return redirect()->route('admin.bills.index')
-            ->with('success', 'Factura creada exitosamente.');
     }
 
     /**
@@ -184,6 +245,7 @@ class BillController extends Controller
      */
     public function getBillsData()
     {
+        // Obtener todas las facturas con la información del usuario
         $bills = Bill::with('user')
             ->orderBy('created_at', 'desc')
             ->get()
@@ -191,8 +253,10 @@ class BillController extends Controller
                 return [
                     'id' => $bill->id,
                     'patient_name' => $bill->user->name,
+                    'patient_email' => $bill->user->email,
                     'rfc' => $bill->rfc,
                     'codigo_postal' => $bill->codigo_postal,
+                    'cuenta_con_seguro' => $bill->cuenta_con_seguro,
                     'regimen_fiscal' => $bill->regimen_fiscal,
                     'cfdi' => $bill->cfdi,
                     'status' => $bill->status,
@@ -200,8 +264,18 @@ class BillController extends Controller
                 ];
             });
         
+        // Calcular estadísticas
+        $currentMonth = Carbon::now()->startOfMonth();
+        $monthlyBills = Bill::where('created_at', '>=', $currentMonth)->get();
+        
+        $statistics = [
+            'monthly_income' => number_format($monthlyBills->count() * 350, 2), // Asumiendo un promedio de $350 por factura
+            'total_bills' => Bill::count(),
+        ];
+        
         return response()->json([
-            'bills' => $bills
+            'bills' => $bills,
+            'statistics' => $statistics
         ]);
     }
 }

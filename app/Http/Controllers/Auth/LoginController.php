@@ -36,8 +36,18 @@ class LoginController extends Controller
             // Guardar un mensaje de bienvenida
             session()->flash('success', '¡Bienvenido de nuevo! Has iniciado sesión correctamente.');
 
-            // Redireccionar al usuario a la página principal
-            return redirect()->intended('/');
+            // Obtener el usuario autenticado
+            $user = Auth::user();
+
+            // Redireccionar según el rol del usuario
+            if ($user->role === 'doctor') {
+                return redirect('/doctor-appointment');
+            } elseif ($user->role === 'admin') {
+                return redirect('/admin/tablero');
+            } else {
+                // Para usuarios con otros roles (pacientes, etc.)
+                return redirect()->intended('/');
+            }
         }
 
         // Si la autenticación falla, regresar con un mensaje de error

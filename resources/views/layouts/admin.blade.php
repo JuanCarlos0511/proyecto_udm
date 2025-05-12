@@ -101,10 +101,10 @@
                                 <span>Historial de Facturas</span>
                             </a>
                         </li>
-                        <li class="sidebar-menu-item {{ request()->is('admin/generar-facturas*') ? 'active' : '' }}">
-                            <a href="{{ url('admin/generar-facturas') }}">
+                        <li class="sidebar-menu-item {{ request()->is('admin/informacion-facturar*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/informacion-facturar') }}">
                                 <i class="fas fa-file-invoice-dollar"></i>
-                                <span>Generar Factura</span>
+                                <span>Información para Facturar</span>
                             </a>
                         </li>
                     </ul>

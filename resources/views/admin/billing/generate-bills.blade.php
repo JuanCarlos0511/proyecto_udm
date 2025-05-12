@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Generar Factura')
+@section('title', 'Información para Facturar')
 
-@section('page-title', 'Generar Factura')
+@section('page-title', 'Información para Facturar')
 
 @section('breadcrumb')
     <span class="breadcrumb-separator">/</span>
-    <span>Generar Factura</span>
+    <span>Información para Facturar</span>
 @endsection
 
 @section('styles')
@@ -15,7 +15,8 @@
 
 @section('content')
     <div class="invoice-container">
-        <form id="invoiceForm" class="invoice-form">
+        <form id="invoiceForm" class="invoice-form" action="{{ route('admin.bills.store') }}" method="POST">
+            @csrf
             <div class="form-header">
                 <h2 class="form-title">Información de Facturación</h2>
                 <p class="form-description">Complete los siguientes campos para generar una factura.</p>
