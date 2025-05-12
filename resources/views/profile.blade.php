@@ -4,6 +4,184 @@
 
 @section('extra-css')
 <link rel="stylesheet" href="{{ asset('css/pages/profile.css') }}">
+<style>
+    /* Estilos para la superposición de la foto de perfil */
+    .profile-avatar {
+        position: relative;
+        cursor: pointer;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .avatar-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 50%;
+    }
+    
+    .profile-avatar:hover .avatar-overlay {
+        opacity: 1;
+    }
+    
+    .avatar-overlay i {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+    
+    .avatar-overlay span {
+        font-size: 12px;
+        text-align: center;
+    }
+    
+    /* Estilos para el modal de foto */
+    .photo-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    
+    .photo-modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+        position: relative;
+    }
+    
+    .close-modal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close-modal:hover,
+    .close-modal:focus {
+        color: black;
+        text-decoration: none;
+    }
+    
+    /* Estilos para las opciones de foto */
+    .photo-options {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .photo-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        width: calc(33% - 10px);
+        min-width: 120px;
+        transition: all 0.3s ease;
+    }
+
+    .delete-option {
+        border-color: #ff4444;
+    }
+
+    .delete-photo-btn {
+        background: none;
+        border: none;
+        color: #ff4444;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 0;
+    }
+
+    .delete-photo-btn:hover {
+        color: #cc0000;
+    }
+    
+    .photo-option:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .photo-option i {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    .upload-option {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .file-input {
+        position: absolute;
+        font-size: 100px;
+        opacity: 0;
+        right: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    /* Estilos para la cámara y vista previa */
+    .camera-container {
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .camera-buttons,
+    .preview-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    #photo-preview {
+        text-align: center;
+    }
+    
+    #preview-image {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -18,11 +196,13 @@
 
     <div class="profile-card">
         <div class="profile-header">
-            <div class="profile-avatar">
-                @if($user->google_id)
-                    <img src="{{ $user->avatar ?? asset('assets/profile.png') }}" alt="Foto de perfil de {{ $user->name }}">
-                @else
-                    <img src="{{ asset('assets/profile.png') }}" alt="Foto de perfil">
+            <div class="profile-avatar" id="profile-avatar-container">
+                <img src="{{ Auth::user()->photo_path ? asset(Auth::user()->photo_path) : asset('assets/profile.png') }}" alt="{{ Auth::user()->name }}" id="profile-photo">
+                @if($user->role === 'paciente')
+                <div class="avatar-overlay">
+                    <i class="fas fa-camera"></i>
+                    <span>Cambiar foto</span>
+                </div>
                 @endif
             </div>
             <div class="profile-info">
@@ -37,7 +217,7 @@
             </div>
         </div>
 
-        <form action="{{ route('profile.update') }}" method="POST" class="profile-form">
+        <form action="{{ route('profile.update') }}" method="POST" class="profile-form" id="profile-form" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             
@@ -142,6 +322,8 @@
                 @enderror
             </div>
             
+            <!-- El campo de foto se ha movido al modal -->
+            
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ url('/') }}'">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Guardar cambios</button>
@@ -149,4 +331,76 @@
         </form>
     </div>
 </div>
+
+<!-- Modal para cambiar la foto de perfil -->
+@if($user->role === 'paciente')
+<div id="photo-modal" class="photo-modal">
+    <div class="photo-modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>Cambiar foto de perfil</h3>
+        
+        <div class="photo-options">
+            <div class="photo-option upload-option">
+                <i class="fas fa-upload"></i>
+                <span>Subir foto</span>
+                <input type="file" id="photo" name="photo" accept="image/*" class="file-input" form="profile-form">
+            </div>
+            
+            <div class="photo-option camera-option">
+                <i class="fas fa-camera"></i>
+                <span>Tomar foto</span>
+            </div>
+
+            @if(Auth::user()->photo_path)
+            <div class="photo-option delete-option">
+                <form action="{{ route('profile.delete-photo') }}" method="POST" style="width: 100%;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="delete-photo-btn" onclick="return confirm('¿Estás seguro de que deseas eliminar tu foto de perfil?')">
+                        <i class="fas fa-trash"></i>
+                        <span>Eliminar foto</span>
+                    </button>
+                </form>
+            </div>
+            @endif
+        </div>
+        
+        <div class="camera-container" style="display:none;">
+            <video id="camera-preview" style="width:100%; max-width:300px;"></video>
+            <canvas id="camera-canvas" style="display:none;"></canvas>
+            <div class="camera-buttons">
+                <button type="button" id="capture-button" class="btn btn-primary">Capturar</button>
+                <button type="button" id="cancel-camera-button" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+        
+        <div id="photo-preview" style="margin-top: 20px; display: none;">
+            <h4>Vista previa</h4>
+            <img id="preview-image" src="#" alt="Vista previa" style="max-width: 200px; max-height: 200px;">
+            <div class="preview-buttons">
+                <button type="button" id="save-photo-button" class="btn btn-primary">Guardar</button>
+                <button type="button" id="cancel-photo-button" class="btn btn-secondary">Cancelar</button>
+            </div>
+            @if(Auth::user()->photo_path)
+            <div class="delete-photo-section" style="margin-top: 20px; text-align: center;">
+                <form action="{{ route('profile.delete-photo') }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar tu foto de perfil?')">
+                        <i class="fas fa-trash"></i> Eliminar foto de perfil
+                    </button>
+                </form>
+            </div>
+            @endif
+        </div>
+        
+        <input type="hidden" id="camera-input" name="camera_photo" form="profile-form">
+    </div>
+</div>
+@endif
+
+@endsection
+
+@section('scripts')
+<script src="{{ asset('js/photo-upload.js') }}"></script>
 @endsection

@@ -39,6 +39,7 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     // Rutas de perfil
     Route::get('/perfil', [ProfileController::class, 'show'])->name('profile');
     Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/perfil/photo', [ProfileController::class, 'deletePhoto'])->name('profile.delete-photo');
     
     Route::get('/settings', function () {
         return view('settings');

@@ -117,13 +117,15 @@ class ProfileController extends Controller
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_phone' => 'nullable|digits:10',
             'emergency_contact_relationship' => 'nullable|string|max:100',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación para la foto
         ]);
 
         // Obtener el ID del usuario autenticado
         $userId = Auth::id();
+        $user = Auth::user();
         
-        // Actualizar los datos del usuario usando el método update
-        User::where('id', $userId)->update([
+        // Preparar los datos para actualizar
+        $userData = [
             'name' => $request->name,
             'age' => $request->age,
             'phoneNumber' => $request->phoneNumber,
@@ -131,8 +133,74 @@ class ProfileController extends Controller
             'emergency_contact_name' => $request->emergency_contact_name,
             'emergency_contact_phone' => $request->emergency_contact_phone,
             'emergency_contact_relationship' => $request->emergency_contact_relationship,
-        ]);
+        ];
+        
+        // Procesar la foto si se ha subido una nueva
+        if ($request->hasFile('photo')) {
+            // Si ya existe una foto anterior, eliminarla
+            if ($user->photo_path && file_exists(public_path($user->photo_path))) {
+                unlink(public_path($user->photo_path));
+            }
+            
+            // Guardar la nueva foto
+            $photoName = time() . '_' . $userId . '.' . $request->photo->extension();
+            $request->photo->move(public_path('uploads/photos'), $photoName);
+            $userData['photo_path'] = 'uploads/photos/' . $photoName;
+        }
+        // Procesar la foto tomada con la cámara
+        elseif ($request->filled('camera_photo')) {
+            // Obtener la imagen en base64 y decodificarla
+            $imageData = $request->input('camera_photo');
+            
+            // Verificar que la cadena base64 es válida
+            if (preg_match('/^data:image\/([a-zA-Z]*);base64,([^\s]*)$/', $imageData, $matches)) {
+                // Si ya existe una foto anterior, eliminarla
+                if ($user->photo_path && file_exists(public_path($user->photo_path))) {
+                    unlink(public_path($user->photo_path));
+                }
+                
+                // Extraer el tipo de imagen y los datos
+                $imageType = $matches[1];
+                $imageData = base64_decode($matches[2]);
+                
+                // Crear un nombre único para la imagen
+                $photoName = time() . '_' . $userId . '_camera.' . $imageType;
+                $photoPath = 'uploads/photos/' . $photoName;
+                
+                // Guardar la imagen en el servidor
+                file_put_contents(public_path($photoPath), $imageData);
+                
+                // Actualizar la ruta de la foto en la base de datos
+                $userData['photo_path'] = $photoPath;
+            }
+        }
+        
+        // Actualizar los datos del usuario usando el método update
+        User::where('id', $userId)->update($userData);
 
         return redirect()->route('profile')->with('success', 'Perfil actualizado correctamente');
+    }
+
+    /**
+     * Eliminar la foto de perfil del usuario.
+     */
+    public function deletePhoto()
+    {
+        $user = Auth::user();
+
+        // Si el usuario tiene una foto
+        if ($user->photo_path) {
+            // Eliminar el archivo físico
+            if (file_exists(public_path($user->photo_path))) {
+                unlink(public_path($user->photo_path));
+            }
+
+            // Actualizar la base de datos
+            $user->update(['photo_path' => null]);
+
+            return redirect()->route('profile')->with('success', 'Foto de perfil eliminada correctamente');
+        }
+
+        return redirect()->route('profile')->with('error', 'No hay foto de perfil para eliminar');
     }
 }
