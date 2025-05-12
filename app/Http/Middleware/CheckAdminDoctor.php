@@ -24,11 +24,11 @@ class CheckAdminDoctor
         }
 
         // Verificar si el usuario tiene el rol de administrador o doctor
-        $user = Auth::user();
-        if ($user->role !== 'administrador' && $user->role !== 'doctor') {
-            return redirect()->route('home')
-                ->with('error', 'No tienes permiso para acceder a esta página');
-        }
+        // $user = Auth::user();
+        // if ($user->role == 'paciente') {
+        //     return redirect()->route('home')
+        //         ->with('error', 'No tienes permiso para acceder a esta página');
+        // }
 
         // Si el usuario tiene el rol requerido, continuar con la solicitud
         return $next($request);
