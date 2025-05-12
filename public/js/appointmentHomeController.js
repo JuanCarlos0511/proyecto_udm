@@ -177,6 +177,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const startHour = 9;
         const endHour = 17;
         
+        // Get current date and time for validation
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinutes = now.getMinutes();
+        
+        // Calculate the minimum available hour (next hour + 1)
+        // If we're at 10:13, the next available hour would be 12:00
+        let minAvailableHour = currentHour + 2; // Start with current hour + 2
+        
+        // If we're already past the startHour and it's the same day, adjust the startHour
+        const isToday = selectedDate && 
+            selectedDate.getDate() === now.getDate() && 
+            selectedDate.getMonth() === now.getMonth() && 
+            selectedDate.getFullYear() === now.getFullYear();
+        
         for (let hour = startHour; hour <= endHour; hour++) {
             const timeSlot = document.createElement('div');
             timeSlot.classList.add('time-slot');
@@ -186,18 +201,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const amPm = hour >= 12 ? 'PM' : 'AM';
             timeSlot.textContent = `${hourFormatted}:00 ${amPm}`;
             
-            timeSlot.addEventListener('click', function() {
-                // Remove selected class from all time slots
-                document.querySelectorAll('.time-slot').forEach(function(slot) {
-                    slot.classList.remove('selected');
+            // Disable hours before the minimum available hour on the current day
+            if (isToday && hour < minAvailableHour) {
+                timeSlot.classList.add('disabled');
+                timeSlot.title = 'Esta hora no está disponible para agendar';
+            } else {
+                timeSlot.addEventListener('click', function() {
+                    // Remove selected class from all time slots
+                    document.querySelectorAll('.time-slot').forEach(function(slot) {
+                        slot.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to this time slot
+                    this.classList.add('selected');
+                    
+                    // Store selected time slot
+                    selectedTimeSlot = hour;
                 });
-                
-                // Add selected class to this time slot
-                this.classList.add('selected');
-                
-                // Store selected time slot
-                selectedTimeSlot = hour;
-            });
+            }
             
             timeSlotsContainer.appendChild(timeSlot);
         }

@@ -36,13 +36,25 @@ class DashboardController extends Controller
         $currentMonth = Carbon::now()->month;
         $previousMonth = Carbon::now()->subMonth()->month;
         $currentYear = Carbon::now()->year;
+        $user = auth()->user();
+        
+        // Preparar consultas base según el rol del usuario
+        $appointmentsQuery = Appointment::query();
+        
+        // Si es doctor, filtrar solo las citas donde el doctor es el usuario actual
+        if ($user->role === 'doctor') {
+            // Para los doctores, las citas son las que tienen su user_id
+            $appointmentsQuery->where('user_id', $user->id);
+        }
         
         // Calculate income
-        $currentMonthIncome = Appointment::whereMonth('date', $currentMonth)
+        $currentMonthIncome = (clone $appointmentsQuery)
+            ->whereMonth('date', $currentMonth)
             ->whereYear('date', $currentYear)
             ->sum('price');
             
-        $previousMonthIncome = Appointment::whereMonth('date', $previousMonth)
+        $previousMonthIncome = (clone $appointmentsQuery)
+            ->whereMonth('date', $previousMonth)
             ->whereYear('date', $currentYear)
             ->sum('price');
             
@@ -51,11 +63,13 @@ class DashboardController extends Controller
             : 100;
             
         // Calculate appointments count
-        $currentMonthAppointments = Appointment::whereMonth('date', $currentMonth)
+        $currentMonthAppointments = (clone $appointmentsQuery)
+            ->whereMonth('date', $currentMonth)
             ->whereYear('date', $currentYear)
             ->count();
             
-        $previousMonthAppointments = Appointment::whereMonth('date', $previousMonth)
+        $previousMonthAppointments = (clone $appointmentsQuery)
+            ->whereMonth('date', $previousMonth)
             ->whereYear('date', $currentYear)
             ->count();
             
@@ -63,13 +77,18 @@ class DashboardController extends Controller
             ? round((($currentMonthAppointments - $previousMonthAppointments) / $previousMonthAppointments) * 100) 
             : 100;
             
-        // Calculate patients count
-        $currentMonthPatients = User::where('role', 'paciente')
+        // Calculate patients count - Para doctores, mostramos todos los pacientes
+        $patientsQuery = User::where('role', 'paciente');
+        
+        // Si es doctor, no filtramos por pacientes específicos
+        // Todos los doctores pueden ver todos los pacientes
+        
+        $currentMonthPatients = (clone $patientsQuery)
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
             ->count();
             
-        $previousMonthPatients = User::where('role', 'paciente')
+        $previousMonthPatients = (clone $patientsQuery)
             ->whereMonth('created_at', $previousMonth)
             ->whereYear('created_at', $currentYear)
             ->count();
@@ -79,12 +98,14 @@ class DashboardController extends Controller
             : 100;
             
         // Calculate treatments (completed appointments)
-        $currentMonthTreatments = Appointment::whereMonth('date', $currentMonth)
+        $currentMonthTreatments = (clone $appointmentsQuery)
+            ->whereMonth('date', $currentMonth)
             ->whereYear('date', $currentYear)
             ->where('status', 'Completado')
             ->count();
             
-        $previousMonthTreatments = Appointment::whereMonth('date', $previousMonth)
+        $previousMonthTreatments = (clone $appointmentsQuery)
+            ->whereMonth('date', $previousMonth)
             ->whereYear('date', $currentYear)
             ->where('status', 'Completado')
             ->count();
@@ -125,47 +146,50 @@ class DashboardController extends Controller
      */
     private function getIncomeData()
     {
-        // Get current date
-        $now = Carbon::now();
+        $user = auth()->user();
+        $data = [
+            'week' => [],
+            'month' => [],
+            'quarter' => [],
+            'year' => []
+        ];
+        
+        // Preparar consulta base según el rol del usuario
+        $query = Appointment::query();
+        
+        // Si es doctor, filtrar solo sus citas
+        if ($user->role === 'doctor') {
+            $query->where('user_id', $user->id);
+        }
         
         // Weekly data (last 7 days)
-        $weekData = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date = $now->copy()->subDays($i);
-            $weekData[] = Appointment::whereDate('date', $date->toDateString())->sum('price');
+            $date = Carbon::now()->subDays($i);
+            $data['week'][] = (clone $query)->whereDate('date', $date->toDateString())->sum('price');
         }
         
         // Monthly data (last 4 weeks)
-        $monthData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $startDate = $now->copy()->subWeeks($i + 1)->addDay();
-            $endDate = $now->copy()->subWeeks($i);
-            $monthData[] = Appointment::whereBetween('date', [$startDate, $endDate])->sum('price');
+            $startDate = Carbon::now()->subWeeks($i + 1)->addDay();
+            $endDate = Carbon::now()->subWeeks($i);
+            $data['month'][] = (clone $query)->whereBetween('date', [$startDate, $endDate])->sum('price');
         }
         
         // Quarterly data (last 4 months)
-        $quarterData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $month = $now->copy()->subMonths($i);
-            $quarterData[] = Appointment::whereMonth('date', $month->month)
-                ->whereYear('date', $month->year)
-                ->sum('price');
+            $startDate = Carbon::now()->subMonths($i + 1)->addDay();
+            $endDate = Carbon::now()->subMonths($i);
+            $data['quarter'][] = (clone $query)->whereBetween('date', [$startDate, $endDate])->sum('price');
         }
         
         // Yearly data (last 4 quarters)
-        $yearData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $startQuarter = $now->copy()->subMonths($i * 3 + 3);
-            $endQuarter = $now->copy()->subMonths($i * 3);
-            $yearData[] = Appointment::whereBetween('date', [$startQuarter, $endQuarter])->sum('price');
+            $startDate = Carbon::now()->subMonths(($i + 1) * 3)->addDay();
+            $endDate = Carbon::now()->subMonths($i * 3);
+            $data['year'][] = (clone $query)->whereBetween('date', [$startDate, $endDate])->sum('price');
         }
         
-        return [
-            'week' => $weekData,
-            'month' => $monthData,
-            'quarter' => $quarterData,
-            'year' => $yearData
-        ];
+        return $data;
     }
     
     /**
@@ -175,47 +199,50 @@ class DashboardController extends Controller
      */
     private function getAppointmentsData()
     {
-        // Get current date
-        $now = Carbon::now();
+        $user = auth()->user();
+        $data = [
+            'week' => [],
+            'month' => [],
+            'quarter' => [],
+            'year' => []
+        ];
+        
+        // Preparar consulta base según el rol del usuario
+        $query = Appointment::query();
+        
+        // Si es doctor, filtrar solo sus citas
+        if ($user->role === 'doctor') {
+            $query->where('user_id', $user->id);
+        }
         
         // Weekly data (last 7 days)
-        $weekData = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date = $now->copy()->subDays($i);
-            $weekData[] = Appointment::whereDate('date', $date->toDateString())->count();
+            $date = Carbon::now()->subDays($i);
+            $data['week'][] = (clone $query)->whereDate('date', $date->toDateString())->count();
         }
         
         // Monthly data (last 4 weeks)
-        $monthData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $startDate = $now->copy()->subWeeks($i + 1)->addDay();
-            $endDate = $now->copy()->subWeeks($i);
-            $monthData[] = Appointment::whereBetween('date', [$startDate, $endDate])->count();
+            $startDate = Carbon::now()->subWeeks($i + 1)->addDay();
+            $endDate = Carbon::now()->subWeeks($i);
+            $data['month'][] = (clone $query)->whereBetween('date', [$startDate, $endDate])->count();
         }
         
         // Quarterly data (last 4 months)
-        $quarterData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $month = $now->copy()->subMonths($i);
-            $quarterData[] = Appointment::whereMonth('date', $month->month)
-                ->whereYear('date', $month->year)
-                ->count();
+            $startDate = Carbon::now()->subMonths($i + 1)->addDay();
+            $endDate = Carbon::now()->subMonths($i);
+            $data['quarter'][] = (clone $query)->whereBetween('date', [$startDate, $endDate])->count();
         }
         
         // Yearly data (last 4 quarters)
-        $yearData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $startQuarter = $now->copy()->subMonths($i * 3 + 3);
-            $endQuarter = $now->copy()->subMonths($i * 3);
-            $yearData[] = Appointment::whereBetween('date', [$startQuarter, $endQuarter])->count();
+            $startDate = Carbon::now()->subMonths(($i + 1) * 3)->addDay();
+            $endDate = Carbon::now()->subMonths($i * 3);
+            $data['year'][] = (clone $query)->whereBetween('date', [$startDate, $endDate])->count();
         }
         
-        return [
-            'week' => $weekData,
-            'month' => $monthData,
-            'quarter' => $quarterData,
-            'year' => $yearData
-        ];
+        return $data;
     }
     
     /**
@@ -225,54 +252,99 @@ class DashboardController extends Controller
      */
     private function getPatientsData()
     {
-        // Get current date
-        $now = Carbon::now();
+        $user = auth()->user();
+        $data = [
+            'week' => [],
+            'month' => [],
+            'quarter' => [],
+            'year' => []
+        ];
+        
+        // Preparar consulta base según el rol del usuario
+        $query = User::where('role', 'paciente');
+        
+        // Si es doctor, filtrar solo los pacientes que ha atendido
+        if ($user->role === 'doctor') {
+            $patientIds = Appointment::where('user_id', $user->id)->pluck('user_id')->unique();
+            $query->whereIn('id', $patientIds);
+        }
         
         // Weekly data (last 7 days)
-        $weekData = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date = $now->copy()->subDays($i);
-            $weekData[] = User::where('role', 'paciente')
-                ->whereDate('created_at', $date->toDateString())
-                ->count();
+            $date = Carbon::now()->subDays($i);
+            
+            if ($user->role === 'doctor') {
+                // Para doctores, contar pacientes atendidos en esa fecha
+                $data['week'][] = Appointment::where('user_id', $user->id)
+                    ->whereDate('date', $date->toDateString())
+                    ->distinct('user_id')
+                    ->count('user_id');
+            } else {
+                // Para admin, contar nuevos pacientes registrados
+                $data['week'][] = (clone $query)
+                    ->whereDate('created_at', $date->toDateString())
+                    ->count();
+            }
         }
         
         // Monthly data (last 4 weeks)
-        $monthData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $startDate = $now->copy()->subWeeks($i + 1)->addDay();
-            $endDate = $now->copy()->subWeeks($i);
-            $monthData[] = User::where('role', 'paciente')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count();
+            $startDate = Carbon::now()->subWeeks($i + 1)->addDay();
+            $endDate = Carbon::now()->subWeeks($i);
+            
+            if ($user->role === 'doctor') {
+                // Para doctores, contar pacientes atendidos en ese período
+                $data['month'][] = Appointment::where('user_id', $user->id)
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->distinct('user_id')
+                    ->count('user_id');
+            } else {
+                // Para admin, contar nuevos pacientes registrados
+                $data['month'][] = (clone $query)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count();
+            }
         }
         
         // Quarterly data (last 4 months)
-        $quarterData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $month = $now->copy()->subMonths($i);
-            $quarterData[] = User::where('role', 'paciente')
-                ->whereMonth('created_at', $month->month)
-                ->whereYear('created_at', $month->year)
-                ->count();
+            $startDate = Carbon::now()->subMonths($i + 1)->addDay();
+            $endDate = Carbon::now()->subMonths($i);
+            
+            if ($user->role === 'doctor') {
+                // Para doctores, contar pacientes atendidos en ese período
+                $data['quarter'][] = Appointment::where('user_id', $user->id)
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->distinct('user_id')
+                    ->count('user_id');
+            } else {
+                // Para admin, contar nuevos pacientes registrados
+                $data['quarter'][] = (clone $query)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count();
+            }
         }
         
         // Yearly data (last 4 quarters)
-        $yearData = [];
         for ($i = 3; $i >= 0; $i--) {
-            $startQuarter = $now->copy()->subMonths($i * 3 + 3);
-            $endQuarter = $now->copy()->subMonths($i * 3);
-            $yearData[] = User::where('role', 'paciente')
-                ->whereBetween('created_at', [$startQuarter, $endQuarter])
-                ->count();
+            $startDate = Carbon::now()->subMonths(($i + 1) * 3)->addDay();
+            $endDate = Carbon::now()->subMonths($i * 3);
+            
+            if ($user->role === 'doctor') {
+                // Para doctores, contar pacientes atendidos en ese período
+                $data['year'][] = Appointment::where('user_id', $user->id)
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->distinct('user_id')
+                    ->count('user_id');
+            } else {
+                // Para admin, contar nuevos pacientes registrados
+                $data['year'][] = (clone $query)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count();
+            }
         }
         
-        return [
-            'week' => $weekData,
-            'month' => $monthData,
-            'quarter' => $quarterData,
-            'year' => $yearData
-        ];
+        return $data;
     }
     
     /**
@@ -297,19 +369,22 @@ class DashboardController extends Controller
      */
     private function getUpcomingAppointments()
     {
-        $appointments = Appointment::with('user')
+        $user = auth()->user();
+        
+        // Preparar consulta base para todas las citas próximas
+        $query = Appointment::with('user')
             ->where('date', '>=', Carbon::today())
             ->where('status', '!=', 'Cancelado')
             ->orderBy('date')
-            ->limit(5)
-            ->get();
+            ->limit(5);
+        
+        // No filtramos por user_id, todos los usuarios ven todas las citas
+        
+        $appointments = $query->get();
             
         $formattedAppointments = [];
         
         foreach ($appointments as $appointment) {
-            // Get doctor information
-            $doctorName = 'Doctor Asignado';
-            
             // Format date
             $formattedDate = Carbon::parse($appointment->date)->format('d M, Y');
             
@@ -325,7 +400,7 @@ class DashboardController extends Controller
                 'id' => $appointment->id,
                 'patient_name' => $appointment->user->name,
                 'formatted_date' => $formattedDate,
-                'doctor_name' => $doctorName,
+                'doctor_name' => 'Doctor Asignado', // Ya no tenemos user_id
                 'status_class' => $statusClass,
                 'status_text' => $appointment->status
             ];
@@ -341,18 +416,23 @@ class DashboardController extends Controller
      */
     private function getPatientsInFollowUp()
     {
+        $user = auth()->user();
+        
         // Get patients with recent appointments
-        $patients = User::where('role', 'paciente')
-            ->whereHas('appointments', function ($query) {
-                $query->where('date', '<=', Carbon::now())
-                      ->where('status', 'Completado');
-            })
-            ->with(['appointments' => function ($query) {
-                $query->where('status', 'Completado')
-                      ->orderBy('date', 'desc');
-            }])
-            ->limit(5)
-            ->get();
+        $query = User::where('role', 'paciente');
+        
+        // Tanto para administradores como doctores, mostramos todos los pacientes en seguimiento
+        $query->whereHas('appointments', function ($query) {
+            $query->where('date', '<=', Carbon::now())
+                  ->where('status', 'Completado');
+        });
+        
+        $query->with(['appointments' => function ($query) {
+            $query->where('status', 'Completado')
+                  ->orderBy('date', 'desc');
+        }]);
+        
+        $patients = $query->limit(5)->get();
             
         $formattedPatients = [];
         

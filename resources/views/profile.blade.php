@@ -19,7 +19,11 @@
     <div class="profile-card">
         <div class="profile-header">
             <div class="profile-avatar">
-                <img src="{{ asset('assets/profile.png') }}" alt="Foto de perfil">
+                @if($user->google_id)
+                    <img src="{{ $user->avatar ?? asset('assets/profile.png') }}" alt="Foto de perfil de {{ $user->name }}">
+                @else
+                    <img src="{{ asset('assets/profile.png') }}" alt="Foto de perfil">
+                @endif
             </div>
             <div class="profile-info">
                 <h2>{{ $user->name }}</h2>

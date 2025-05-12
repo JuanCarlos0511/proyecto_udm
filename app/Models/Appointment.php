@@ -45,4 +45,7 @@ class Appointment extends Model
     {
         return $this->belongsTo(User::class);
     }
+    
+    // La relación con el doctor se maneja a través de la tabla de usuarios
+    // No se necesita una relación específica doctor_id
 }

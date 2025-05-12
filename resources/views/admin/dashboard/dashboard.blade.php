@@ -21,6 +21,14 @@
 @endsection
 
 @section('content')
+    <div class="dashboard-row">
+        <!-- Appointments Component -->
+        @include('components.admin.upcoming-appointments', ['appointments' => $appointments])
+        
+        <!-- Patients in Follow-up Component -->
+        @include('components.admin.patients-follow-up', ['patients' => $patients])
+    </div>
+    
     <!-- Stats Cards Component -->
     @include('components.admin.stat-cards', [
         'incomeValue' => $incomeValue,
@@ -40,14 +48,6 @@
         'patientsData' => $patientsData,
         'chartLabels' => $chartLabels
     ])
-    
-    <div class="dashboard-row">
-        <!-- Appointments Component -->
-        @include('components.admin.upcoming-appointments', ['appointments' => $appointments])
-        
-        <!-- Patients in Follow-up Component -->
-        @include('components.admin.patients-follow-up', ['patients' => $patients])
-    </div>
 @endsection
 
 @section('scripts')

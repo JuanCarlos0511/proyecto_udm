@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Middleware\CheckAuthenticated;
+use App\Http\Middleware\CheckAdminDoctor;
 
 // Rutas públicas - accesibles sin autenticación
 Route::get('/', function () {
@@ -47,86 +48,88 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
         return view('logout');
     });
     
-    // Rutas de administración
-    Route::get('/admin', function () {
-        return redirect('/admin/tablero');
+    // Rutas de administración - Solo para administradores y doctores
+    Route::middleware([CheckAdminDoctor::class])->group(function () {
+        Route::get('/admin', function () {
+            return redirect('/admin/tablero');
+        });
+        
+        // Rutas del tablero
+        Route::get('/admin/tablero', 'App\Http\Controllers\Admin\DashboardController@index')->name('admin.dashboard');
+        Route::get('/admin/tablero/actualizar', 'App\Http\Controllers\Admin\DashboardController@refresh')->name('admin.dashboard.refresh');
+        
+        // Rutas de perfil de administrador
+        Route::get('/admin/perfil', function () {
+            return view('admin.profile.user-profile');
+        })->name('admin.profile');
+        
+        Route::get('/admin/perfil/editar', function () {
+            return view('admin.profile.edit-profile');
+        })->name('admin.profile.edit');
+        
+        Route::get('/admin/perfil/actividad-toda', function () {
+            return view('admin.profile.all-activity');
+        })->name('admin.profile.activity');
+        
+        Route::get('/admin/perfil/compensaciones-todas', function () {
+            return view('admin.profile.all-compensations');
+        })->name('admin.profile.compensations');
+        
+        // Rutas de historial de administrador
+        Route::get('/admin/historial-citas', function() {
+            return view('admin.appointments.appointment-history');
+        })->name('admin.appointments.history');
+        
+        Route::get('/admin/historial-facturas', function() {
+            return view('admin.billing.billing-history');
+        })->name('admin.billing.history');
+        
+        // Rutas de generación de reportes de administrador
+        Route::get('/admin/reportes/generar', 'App\Http\Controllers\Admin\ReportController@index')->name('admin.reports.index');
+        Route::post('/admin/reportes/data', 'App\Http\Controllers\Admin\ReportController@getAppointmentData')->name('admin.reports.data');
+        
+        // Rutas de facturas de administrador
+        Route::get('/admin/generar-facturas', function() {
+            return view('admin.billing.generate-bills');
+        })->name('admin.bills.generate');
+        
+        Route::post('/admin/generar-facturas', 'App\Http\Controllers\Admin\BillController@store')->name('admin.bills.store');
+        Route::get('/admin/facturas', function() {
+            return view('admin.bills.bills-list');
+        })->name('admin.bills.index');
+        
+        Route::resource('/admin/facturas', 'App\Http\Controllers\Admin\BillController', ['as' => 'admin'])->except(['index', 'store']);
+        
+        // Rutas para gestión de doctores
+        Route::get('/admin/doctores', function() {
+            return view('admin.doctors.doctors-list');
+        })->name('admin.doctors.index');
+        Route::resource('/admin/doctores', 'App\Http\Controllers\Admin\DoctorController', ['as' => 'admin'])->except(['index']);
+        Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@getDoctorsData')->name('admin.doctors.data');
+        
+        // Rutas para citas
+        Route::get('/admin/tablero/citas-todas', function() {
+            return view('admin.appointments.all-appointments');
+        })->name('admin.appointment-all-appointments');
+        
+        Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index']);
+        Route::get('/admin/citas-data', 'App\Http\Controllers\Admin\AppointmentController@getAppointmentsData')->name('admin.appointments.data');
+        Route::get('/admin/citas-domicilio', 'App\Http\Controllers\Admin\AppointmentController@createHomeAppointment')->name('admin.appointments.home');
+        Route::get('/admin/citas-consultorio', 'App\Http\Controllers\Admin\AppointmentController@createClinicAppointment')->name('admin.appointments.clinic');
+        
+        // Rutas para pacientes en seguimiento
+        Route::get('admin/tablero/seguimiento-todos', function() {
+            return view('admin.dashboard.all-patient-followups');
+        })->name('admin.all-patient-followups');
+        
+        Route::get('/admin/pacientes', function() {
+            return view('admin.patients.patients-list');
+        })->name('admin.patients.index');
+        Route::resource('/admin/pacientes', 'App\Http\Controllers\Admin\PatientController', ['as' => 'admin'])->except(['index']);
+        Route::get('/admin/pacientes-data', 'App\Http\Controllers\Admin\PatientController@getPatientsData')->name('admin.patients.data');
+        Route::get('/admin/pacientes/{id}/perfil-info', 'App\Http\Controllers\Admin\PatientController@addProfileInfo')->name('admin.patients.profile-info');
+        Route::put('/admin/pacientes/{id}/perfil-info', 'App\Http\Controllers\Admin\PatientController@updateProfileInfo')->name('admin.patients.update-profile-info');
     });
-    
-    // Rutas del tablero
-    Route::get('/admin/tablero', 'App\Http\Controllers\Admin\DashboardController@index')->name('admin.dashboard');
-    Route::get('/admin/tablero/actualizar', 'App\Http\Controllers\Admin\DashboardController@refresh')->name('admin.dashboard.refresh');
-    
-    // Rutas de perfil de administrador
-    Route::get('/admin/perfil', function () {
-        return view('admin.profile.user-profile');
-    })->name('admin.profile');
-    
-    Route::get('/admin/perfil/editar', function () {
-        return view('admin.profile.edit-profile');
-    })->name('admin.profile.edit');
-    
-    Route::get('/admin/perfil/actividad-toda', function () {
-        return view('admin.profile.all-activity');
-    })->name('admin.profile.activity');
-    
-    Route::get('/admin/perfil/compensaciones-todas', function () {
-        return view('admin.profile.all-compensations');
-    })->name('admin.profile.compensations');
-    
-    // Rutas de historial de administrador
-    Route::get('/admin/historial-citas', function() {
-        return view('admin.appointments.appointment-history');
-    })->name('admin.appointments.history');
-    
-    Route::get('/admin/historial-facturas', function() {
-        return view('admin.billing.billing-history');
-    })->name('admin.billing.history');
-    
-    // Rutas de generación de reportes de administrador
-    Route::get('/admin/reportes/generar', 'App\Http\Controllers\Admin\ReportController@index')->name('admin.reports.index');
-    Route::post('/admin/reportes/data', 'App\Http\Controllers\Admin\ReportController@getAppointmentData')->name('admin.reports.data');
-    
-    // Rutas de facturas de administrador
-    Route::get('/admin/generar-facturas', function() {
-        return view('admin.billing.generate-bills');
-    })->name('admin.bills.generate');
-    
-    Route::post('/admin/generar-facturas', 'App\Http\Controllers\Admin\BillController@store')->name('admin.bills.store');
-    Route::get('/admin/facturas', function() {
-        return view('admin.bills.bills-list');
-    })->name('admin.bills.index');
-    
-    Route::resource('/admin/facturas', 'App\Http\Controllers\Admin\BillController', ['as' => 'admin'])->except(['index', 'store']);
-    
-    // Rutas para gestión de doctores
-    Route::get('/admin/doctores', function() {
-        return view('admin.doctors.doctors-list');
-    })->name('admin.doctors.index');
-    Route::resource('/admin/doctores', 'App\Http\Controllers\Admin\DoctorController', ['as' => 'admin'])->except(['index']);
-    Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@getDoctorsData')->name('admin.doctors.data');
-    
-    // Rutas para citas
-    Route::get('/admin/tablero/citas-todas', function() {
-        return view('admin.appointments.all-appointments');
-    })->name('admin.appointment-all-appointments');
-    
-    Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index']);
-    Route::get('/admin/citas-data', 'App\Http\Controllers\Admin\AppointmentController@getAppointmentsData')->name('admin.appointments.data');
-    Route::get('/admin/citas-domicilio', 'App\Http\Controllers\Admin\AppointmentController@createHomeAppointment')->name('admin.appointments.home');
-    Route::get('/admin/citas-consultorio', 'App\Http\Controllers\Admin\AppointmentController@createClinicAppointment')->name('admin.appointments.clinic');
-    
-    // Rutas para pacientes en seguimiento
-    Route::get('admin/tablero/seguimiento-todos', function() {
-        return view('admin.dashboard.all-patient-followups');
-    })->name('admin.all-patient-followups');
-    
-    Route::get('/admin/pacientes', function() {
-        return view('admin.patients.patients-list');
-    })->name('admin.patients.index');
-    Route::resource('/admin/pacientes', 'App\Http\Controllers\Admin\PatientController', ['as' => 'admin'])->except(['index']);
-    Route::get('/admin/pacientes-data', 'App\Http\Controllers\Admin\PatientController@getPatientsData')->name('admin.patients.data');
-    Route::get('/admin/pacientes/{id}/perfil-info', 'App\Http\Controllers\Admin\PatientController@addProfileInfo')->name('admin.patients.profile-info');
-    Route::put('/admin/pacientes/{id}/perfil-info', 'App\Http\Controllers\Admin\PatientController@updateProfileInfo')->name('admin.patients.update-profile-info');
     
     // Rutas de citas para usuarios normales
     Route::get('/appointment', function () {

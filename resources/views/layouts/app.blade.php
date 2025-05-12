@@ -119,11 +119,7 @@
                 </div>
                 
                 <div class="footer-column newsletter">
-                    <p>Suscríbete a nuestro newsletter</p>
-                    <div class="newsletter-form">
-                        <input type="email" placeholder="Tu email" required>
-                        <button type="submit">Suscribirse</button>
-                    </div>
+                    
                     <div class="social-links">
                         <p>Síguenos</p>
                         <div class="social-icons">
