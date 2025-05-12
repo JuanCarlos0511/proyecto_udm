@@ -46,7 +46,15 @@
                 <a href="{{ url('seguimiento') }}" class="{{ request()->is('seguimiento*') ? 'active' : '' }}">Seguimiento</a>
             </nav>
             <div class="user-icon profile-dropdown">
-                <img src="{{ asset('assets/profile.png') }}" alt="Usuario">
+                @auth
+                    @if(Auth::user()->photo_path)
+                        <img src="{{ asset(Auth::user()->photo_path) }}" alt="{{ Auth::user()->name }}">
+                    @else
+                        <img src="{{ asset('assets/profile.png') }}" alt="{{ Auth::user()->name }}">
+                    @endif
+                @else
+                    <img src="{{ asset('assets/profile.png') }}" alt="Usuario">
+                @endauth
                 <div class="profile-dropdown-content">
                     <div class="dropdown-menu-items">
                         @auth
