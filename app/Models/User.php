@@ -22,6 +22,7 @@ class User extends Authenticatable
         'role',
         'email',
         'google_id',
+        'avatar',
         'password',
         'adress',
         'status',
@@ -29,6 +30,7 @@ class User extends Authenticatable
         'emergency_contact_name',
         'emergency_contact_phone',
         'emergency_contact_relationship',
+        'photo_path',
     ];
 
     /**

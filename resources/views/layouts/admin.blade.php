@@ -13,7 +13,6 @@
     <!-- UI Components -->
     <link rel="stylesheet" href="{{ asset('css/components/buttons.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/profile-indicator.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/components/role-simulator.css') }}">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -134,19 +133,21 @@
                     
                     <div class="user-profile dropdown">
                         <div class="user-info">
-                            <img src="{{ asset('assets/profile.png') }}" alt="Usuario" class="user-avatar">
-                            <span class="user-name">Dr. García</span>
+                            @auth
+                                @if(auth()->user()->google_id)
+                                    <img src="{{ auth()->user()->avatar ?? asset('assets/profile.png') }}" alt="{{ auth()->user()->name }}" class="user-avatar">
+                                @else
+                                    <img src="{{ asset('assets/profile.png') }}" alt="{{ auth()->user()->name }}" class="user-avatar">
+                                @endif
+                                <span class="user-name">{{ auth()->user()->name }}</span>
+                            @else
+                                <img src="{{ asset('assets/profile.png') }}" alt="Usuario" class="user-avatar">
+                                <span class="user-name">Usuario</span>
+                            @endauth
                         </div>
                         <div class="dropdown-menu">
                             <a href="{{ route('profile') }}" class="dropdown-item profile-link">
                                 <i class="fas fa-user"></i> Mi Perfil
-                                @auth
-                                    @if(!isset($isProfileFullyComplete) || !$isProfileFullyComplete)
-                                    <span class="profile-incomplete" title="Completa tu información de perfil para mejorar tu experiencia.">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                    </span>
-                                    @endif
-                                @endauth
                             </a>
                             <a href="{{ url('ajustes') }}" class="dropdown-item">
                                 <i class="fas fa-cog"></i> Configuración
@@ -177,7 +178,6 @@
     </div>
 
     <script src="{{ asset('js/admin.js') }}"></script>
-    <script src="{{ asset('js/role-simulator.js') }}"></script>
     @yield('scripts')
 </body>
 </html>

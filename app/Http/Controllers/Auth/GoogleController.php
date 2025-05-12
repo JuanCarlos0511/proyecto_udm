@@ -46,7 +46,13 @@ class GoogleController extends Controller
                 // Si el usuario ya existe, iniciar sesión
                 \Illuminate\Support\Facades\Log::info('Usuario existente encontrado con google_id');
                 Auth::login($findUser);
-                return redirect('/')->with('success', 'Has iniciado sesión correctamente');
+                
+                // Redirigir según el rol del usuario
+                if ($findUser->role === 'administrador' || $findUser->role === 'doctor') {
+                    return redirect('/admin/dashboard')->with('success', 'Has iniciado sesión correctamente');
+                } else {
+                    return redirect('/')->with('success', 'Has iniciado sesión correctamente');
+                }
             } else {
                 // Verificar si el email ya está registrado
                 $existingUser = User::where('email', $user->email)->first();
@@ -57,7 +63,13 @@ class GoogleController extends Controller
                     $existingUser->google_id = $user->id;
                     $existingUser->save();
                     Auth::login($existingUser);
-                    return redirect('/')->with('success', 'Has iniciado sesión correctamente');
+                    
+                    // Redirigir según el rol del usuario
+                    if ($existingUser->role === 'administrador' || $existingUser->role === 'doctor') {
+                        return redirect('/admin/dashboard')->with('success', 'Has iniciado sesión correctamente');
+                    } else {
+                        return redirect('/')->with('success', 'Has iniciado sesión correctamente');
+                    }
                 } else {
                     // Crear un nuevo usuario
                     \Illuminate\Support\Facades\Log::info('Creando nuevo usuario');

@@ -18,7 +18,20 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        $appointments = Appointment::with('user')->orderBy('date', 'desc')->get();
+        $user = auth()->user();
+        
+        // Si es administrador, mostrar todas las citas
+        // Si es doctor, mostrar solo las citas asociadas a pacientes que ha atendido
+        if ($user->role === 'administrador') {
+            $appointments = Appointment::with('user')->orderBy('date', 'desc')->get();
+        } else { // doctor
+            // Para los doctores, podemos filtrar por citas que tengan un subject o diagnosis relacionado con su especialidad
+            // O simplemente mostrar todas las citas para que puedan ver la agenda general
+            $appointments = Appointment::with('user')
+                ->orderBy('date', 'desc')
+                ->get();
+        }
+        
         return view('admin.appointments.index', compact('appointments'));
     }
 
@@ -163,10 +176,21 @@ class AppointmentController extends Controller
      */
     public function history()
     {
-        $appointments = Appointment::with('user')
-            ->where('date', '<', Carbon::today())
-            ->orderBy('date', 'desc')
-            ->get();
+        $user = auth()->user();
+        
+        // Si es administrador, mostrar todas las citas pasadas
+        // Si es doctor, mostrar todas las citas pasadas (agenda general)
+        if ($user->role === 'administrador') {
+            $appointments = Appointment::with('user')
+                ->where('date', '<', Carbon::today())
+                ->orderBy('date', 'desc')
+                ->get();
+        } else { // doctor
+            $appointments = Appointment::with('user')
+                ->where('date', '<', Carbon::today())
+                ->orderBy('date', 'desc')
+                ->get();
+        }
             
         return view('admin.appointments.history', compact('appointments'));
     }

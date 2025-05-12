@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Botones de editar doctor
     const editBtns = document.querySelectorAll('.edit-doctor-btn');
     
-    // Botones de eliminar doctor
-    const deleteBtns = document.querySelectorAll('.delete-doctor-btn');
+    // Token CSRF para peticiones AJAX
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     
     // Función para abrir el modal
     function openModal(title = 'Agregar Doctor', id = '') {
@@ -20,48 +20,31 @@ document.addEventListener('DOMContentLoaded', function() {
         doctorId.value = id;
         doctorModal.style.display = 'flex';
         
-        // Si es edición, cargar datos del doctor (simulado)
+        // Si es edición, cargar datos del doctor mediante AJAX
         if (id) {
-            // Aquí normalmente harías una petición AJAX para obtener los datos del doctor
-            // Para este ejemplo, usamos datos simulados
-            const doctorData = {
-                1: {
-                    name: 'Dr. Juan Pérez',
-                    specialty: 'general',
-                    email: 'juan.perez@clinicamiel.com',
-                    phone: '+52 55 1234 5678',
-                    status: 'active'
-                },
-                2: {
-                    name: 'Dra. María Rodríguez',
-                    specialty: 'dental',
-                    email: 'maria.rodriguez@clinicamiel.com',
-                    phone: '+52 55 8765 4321',
-                    status: 'active'
-                },
-                3: {
-                    name: 'Dr. Carlos López',
-                    specialty: 'cardio',
-                    email: 'carlos.lopez@clinicamiel.com',
-                    phone: '+52 55 2468 1357',
-                    status: 'inactive'
-                },
-                4: {
-                    name: 'Dra. Ana Martínez',
-                    specialty: 'pediatria',
-                    email: 'ana.martinez@clinicamiel.com',
-                    phone: '+52 55 1357 2468',
-                    status: 'active'
+            fetch(`/admin/doctors/${id}/edit`, {
+                headers: {
+                    'Accept': 'application/json'
                 }
-            };
-            
-            const doctor = doctorData[id];
-            
-            document.getElementById('doctorName').value = doctor.name;
-            document.getElementById('doctorSpecialty').value = doctor.specialty;
-            document.getElementById('doctorEmail').value = doctor.email;
-            document.getElementById('doctorPhone').value = doctor.phone;
-            document.getElementById('doctorStatus').value = doctor.status;
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.doctor) {
+                    document.getElementById('doctorName').value = data.doctor.name;
+                    document.getElementById('doctorEmail').value = data.doctor.email;
+                    document.getElementById('doctorPhone').value = data.doctor.phoneNumber;
+                    document.getElementById('doctorStatus').value = data.doctor.status;
+                    
+                    // Limpiar el campo de contraseña en edición
+                    if (document.getElementById('doctorPassword')) {
+                        document.getElementById('doctorPassword').value = '';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar datos del doctor:', error);
+                alert('Error al cargar los datos del doctor. Por favor, intente nuevamente.');
+            });
         } else {
             // Si es agregar, limpiar el formulario
             doctorForm.reset();
@@ -89,15 +72,55 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Aquí normalmente harías una petición AJAX para guardar los datos
-        // Para este ejemplo, solo mostramos un mensaje
-        const isEditing = doctorId.value !== '';
-        const message = isEditing ? 'Doctor actualizado correctamente.' : 'Doctor agregado correctamente.';
+        const id = doctorId.value;
+        const isEditing = id !== '';
+        const url = isEditing ? `/admin/doctors/${id}` : '/admin/doctors';
+        const method = isEditing ? 'PUT' : 'POST';
         
-        alert(message);
-        closeModalFunc();
+        // Recopilar datos del formulario
+        const formData = new FormData();
+        formData.append('name', document.getElementById('doctorName').value);
+        formData.append('email', document.getElementById('doctorEmail').value);
+        formData.append('phoneNumber', document.getElementById('doctorPhone').value);
         
-        // En una aplicación real, aquí actualizarías la tabla con los nuevos datos
+        // Solo incluir contraseña si se está creando un nuevo doctor o si se ha ingresado una nueva contraseña
+        const passwordField = document.getElementById('doctorPassword');
+        if (passwordField && passwordField.value) {
+            formData.append('password', passwordField.value);
+        }
+        
+        if (isEditing) {
+            formData.append('status', document.getElementById('doctorStatus').value);
+            formData.append('_method', 'PUT'); // Laravel requiere esto para simular PUT
+        } else {
+            formData.append('role', 'doctor');
+            formData.append('status', 'active');
+        }
+        
+        // Enviar datos mediante AJAX
+        fetch(url, {
+            method: 'POST', // Siempre POST para FormData, _method simula PUT
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || (isEditing ? 'Doctor actualizado correctamente.' : 'Doctor agregado correctamente.'));
+                closeModalFunc();
+                // Recargar la página para mostrar los cambios
+                window.location.reload();
+            } else {
+                alert(data.message || 'Error al procesar la solicitud.');
+            }
+        })
+        .catch(error => {
+            console.error('Error al guardar doctor:', error);
+            alert('Error al procesar la solicitud. Por favor, intente nuevamente.');
+        });
     });
     
     // Eventos para editar doctor
@@ -108,21 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Eventos para eliminar doctor
-    deleteBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            const confirmDelete = confirm('¿Está seguro que desea eliminar este doctor?');
-            
-            if (confirmDelete) {
-                // Aquí normalmente harías una petición AJAX para eliminar el doctor
-                // Para este ejemplo, solo mostramos un mensaje
-                alert('Doctor eliminado correctamente.');
-                
-                // En una aplicación real, aquí eliminarías la fila de la tabla
-            }
-        });
-    });
+
     
     // Cerrar modal si se hace clic fuera de él
     window.addEventListener('click', function(event) {

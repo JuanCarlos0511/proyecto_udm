@@ -14,7 +14,7 @@
         <!-- Profile Section -->
         <div class="profile-section">
             <div class="profile-image">
-                <img src="{{ asset('assets/profile-placeholder.jpg') }}" alt="Foto de perfil">
+                <img src="{{ Auth::user()->photo_path ? asset(Auth::user()->photo_path) : asset('assets/profile.png') }}" alt="{{ Auth::user()->name }}" class="profile-picture">
             </div>
             <div class="profile-info">
                 <h1>{{ Auth::user() ? Auth::user()->name : 'Paciente' }}</h1>
