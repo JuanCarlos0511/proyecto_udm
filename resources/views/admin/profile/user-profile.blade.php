@@ -126,25 +126,189 @@
                     </div>
                 </div>
                 
-                <div class="profile-card">
+                <div class="profile-card salary-card">
                     <div class="profile-card-header">
-                        <h3 class="profile-card-title">Compensaciones</h3>
-                        <a href="{{ url('admin/perfil/compensaciones-todas') }}" class="edit-button">Ver todo</a>
+                        <h3 class="profile-card-title">Mi Salario</h3>
+                        <div class="period-selector">2025-05</div>
                     </div>
-                    <div class="profile-card-content">
-                        <div class="profile-field">
-                            <div class="profile-field-label">SALARIO BASE</div>
-                            <div class="profile-field-value">$85,000.00 / año</div>
+                    <div class="profile-card-content salary-content">
+                        <div class="salary-overview">
+                            <div class="total-salary">
+                                <div class="salary-label">Monto Total del Mes</div>
+                                <div class="salary-amount">$ <span style="color: #28a745; font-weight: bold; font-size: 28px;">41,000.00</span></div>
+                                <div class="salary-period">/ año</div>
+                            </div>
+                            
+                            <div class="salary-composition-chart">
+                                <div class="chart-container" style="position: relative; width: 180px; height: 180px;">
+                                    <!-- Aquí iría un gráfico circular, por ahora usamos un placeholder -->
+                                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#4e73df 0% 70%, #1cc88a 70% 85%, #36b9cc 85% 100%);"></div>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: white; width: 120px; height: 120px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center;">
+                                        <div style="font-size: 14px; color: #666;">Salary</div>
+                                        <div style="font-size: 16px; font-weight: bold;">Composition</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="chart-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #4e73df;"></span>
+                                        <span class="legend-text">Salario base</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #1cc88a;"></span>
+                                        <span class="legend-text">Bonos</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #36b9cc;"></span>
+                                        <span class="legend-text">Incentivos</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="profile-field">
-                            <div class="profile-field-label">BONOS</div>
-                            <div class="profile-field-value">$5,000.00 / año</div>
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-field-label">TOTAL</div>
-                            <div class="profile-field-value">$90,000.00 / año</div>
+                        
+                        <div class="salary-details">
+                            <div class="salary-detail-item">
+                                <div class="detail-icon" style="background-color: #4e73df;">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Salario Base</div>
+                                    <div class="detail-value">$30,000.00</div>
+                                </div>
+                            </div>
+                            
+                            <div class="salary-detail-item">
+                                <div class="detail-icon" style="background-color: #1cc88a;">
+                                    <i class="fas fa-gift"></i>
+                                </div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Bonos</div>
+                                    <div class="detail-value">$5,000.00</div>
+                                </div>
+                            </div>
+                            
+                            <div class="salary-detail-item">
+                                <div class="detail-icon" style="background-color: #36b9cc;">
+                                    <i class="fas fa-award"></i>
+                                </div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Incentivos</div>
+                                    <div class="detail-value">$6,000.00</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <style>
+                        .salary-card {
+                            margin-bottom: 30px;
+                        }
+                        .salary-content {
+                            padding: 20px;
+                        }
+                        .period-selector {
+                            background-color: #f8f9fc;
+                            padding: 5px 10px;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            color: #666;
+                        }
+                        .salary-overview {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 30px;
+                            align-items: center;
+                        }
+                        .total-salary {
+                            padding: 20px;
+                            background-color: #f8f9fc;
+                            border-radius: 8px;
+                            width: 45%;
+                        }
+                        .salary-label {
+                            font-size: 14px;
+                            color: #666;
+                            margin-bottom: 5px;
+                        }
+                        .salary-amount {
+                            font-size: 20px;
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                        }
+                        .salary-period {
+                            font-size: 14px;
+                            color: #666;
+                        }
+                        .salary-composition-chart {
+                            display: flex;
+                            align-items: center;
+                            width: 50%;
+                        }
+                        .chart-legend {
+                            margin-left: 15px;
+                        }
+                        .legend-item {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 8px;
+                        }
+                        .legend-color {
+                            width: 12px;
+                            height: 12px;
+                            border-radius: 2px;
+                            margin-right: 8px;
+                        }
+                        .legend-text {
+                            font-size: 13px;
+                            color: #666;
+                        }
+                        .salary-details {
+                            display: flex;
+                            justify-content: space-between;
+                            flex-wrap: wrap;
+                        }
+                        .salary-detail-item {
+                            display: flex;
+                            align-items: center;
+                            width: 30%;
+                            background-color: #f8f9fc;
+                            padding: 15px;
+                            border-radius: 8px;
+                            margin-bottom: 15px;
+                        }
+                        .detail-icon {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin-right: 15px;
+                            color: white;
+                        }
+                        .detail-label {
+                            font-size: 13px;
+                            color: #666;
+                            margin-bottom: 5px;
+                        }
+                        .detail-value {
+                            font-weight: bold;
+                            font-size: 16px;
+                        }
+                        
+                        @media (max-width: 768px) {
+                            .salary-overview {
+                                flex-direction: column;
+                            }
+                            .total-salary, .salary-composition-chart {
+                                width: 100%;
+                                margin-bottom: 20px;
+                            }
+                            .salary-detail-item {
+                                width: 100%;
+                            }
+                        }
+                    </style>
                 </div>
             </div>
         </div>
