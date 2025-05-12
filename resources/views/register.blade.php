@@ -26,18 +26,20 @@
     
     <div class="register-right-panel">
         <!-- Indicadores de etapa -->
-        <div class="stage-indicators">
-            <div class="stage-dot active" data-stage="1">
-                <span class="stage-number">1</span>
-                <span class="stage-label">Básica</span>
-            </div>
-            <div class="stage-dot" data-stage="2">
-                <span class="stage-number">2</span>
-                <span class="stage-label">Personal</span>
-            </div>
-            <div class="stage-dot" data-stage="3">
-                <span class="stage-number">3</span>
-                <span class="stage-label">Dirección</span>
+        <div class="stage-indicators-wrapper">
+            <div class="stage-indicators">
+                <div class="stage-dot active" data-stage="1">
+                    <span class="stage-number">1</span>
+                    <span class="stage-label">Básica</span>
+                </div>
+                <div class="stage-dot" data-stage="2">
+                    <span class="stage-number">2</span>
+                    <span class="stage-label">Personal</span>
+                </div>
+                <div class="stage-dot" data-stage="3">
+                    <span class="stage-number">3</span>
+                    <span class="stage-label">Dirección</span>
+                </div>
             </div>
         </div>
         <div class="register-form-container">

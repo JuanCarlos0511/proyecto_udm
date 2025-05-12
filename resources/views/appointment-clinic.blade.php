@@ -91,6 +91,7 @@
                     <label for="especialidad" class="required-field">Especialidad requerida</label>
                     <select id="especialidad" name="especialidad" required>
                         <option value="">Seleccione una especialidad</option>
+                        <option value="general">General</option>
                         <option value="electroterapia">Electroterapia</option>
                         <option value="hidroterapia">Hidroterapia</option>
                         <option value="mecanoterapia">Mecanoterapia</option>
@@ -103,6 +104,7 @@
                     <label for="doctor" class="required-field">Seleccionar Doctor</label>
                     <select id="doctor" name="doctor_id" required>
                         <option value="">Seleccione un doctor</option>
+                        <option value="cualquiera">Cualquiera</option>
                         @foreach($doctors as $doctor)
                             <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
                         @endforeach

@@ -10,7 +10,7 @@
 
 <section class="about-us-content">
     <div class="container">
-        <h1 class="about-title">Sobre Nosotros: Su Bienestar, Nuestra Pasión</h1>
+        <h1 class="about-title"> Clinica Miel: Su Bienestar, Nuestra Pasión</h1>
         
         <!-- Historia - Primera sección -->
         <div class="about-section">

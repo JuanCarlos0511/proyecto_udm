@@ -58,114 +58,38 @@
             </tr>
         </thead>
         <tbody>
+            @foreach($doctors as $doctor)
             <tr>
                 <td>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div class="doctor-avatar">
-                            <img src="{{ asset('assets/doctor1.png') }}" alt="Doctor">
+                            <img src="{{ $doctor->avatar ? $doctor->avatar : asset('assets/profile.png') }}" alt="{{ $doctor->name }}">
                         </div>
                         <div>
-                            <div class="doctor-name">Dr. Juan Pérez</div>
-                            <div class="doctor-specialty">Medicina General</div>
+                            <div class="doctor-name">{{ $doctor->name }}</div>
+                            <div class="doctor-specialty">{{ ucfirst($doctor->role) }}</div>
                         </div>
                     </div>
                 </td>
-                <td>Medicina General</td>
-                <td>juan.perez@clinicamiel.com</td>
-                <td>+52 55 1234 5678</td>
-                <td><span class="status-badge status-active">Activo</span></td>
+                <td>{{ ucfirst($doctor->role) }}</td>
+                <td>{{ $doctor->email }}</td>
+                <td>{{ $doctor->phoneNumber }}</td>
+                <td><span class="status-badge status-{{ $doctor->status }}">{{ ucfirst($doctor->status) }}</span></td>
                 <td>
                     <div class="doctor-actions">
-                        <button class="action-btn edit-btn edit-doctor-btn" data-id="1">
+                        <button class="action-btn edit-btn edit-doctor-btn" data-id="{{ $doctor->id }}" title="Editar doctor">
                             <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn delete-doctor-btn" data-id="1">
-                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </td>
             </tr>
+            @endforeach
+
+            @if(count($doctors) == 0)
             <tr>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="doctor-avatar">
-                            <img src="{{ asset('assets/doctor2.png') }}" alt="Doctor">
-                        </div>
-                        <div>
-                            <div class="doctor-name">Dra. María Rodríguez</div>
-                            <div class="doctor-specialty">Odontología</div>
-                        </div>
-                    </div>
-                </td>
-                <td>Odontología</td>
-                <td>maria.rodriguez@clinicamiel.com</td>
-                <td>+52 55 8765 4321</td>
-                <td><span class="status-badge status-active">Activo</span></td>
-                <td>
-                    <div class="doctor-actions">
-                        <button class="action-btn edit-btn edit-doctor-btn" data-id="2">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn delete-doctor-btn" data-id="2">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </td>
+                <td colspan="6" class="text-center">No hay doctores registrados</td>
             </tr>
-            <tr>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="doctor-avatar">
-                            <img src="{{ asset('assets/doctor3.png') }}" alt="Doctor">
-                        </div>
-                        <div>
-                            <div class="doctor-name">Dr. Carlos López</div>
-                            <div class="doctor-specialty">Cardiología</div>
-                        </div>
-                    </div>
-                </td>
-                <td>Cardiología</td>
-                <td>carlos.lopez@clinicamiel.com</td>
-                <td>+52 55 2468 1357</td>
-                <td><span class="status-badge status-inactive">Inactivo</span></td>
-                <td>
-                    <div class="doctor-actions">
-                        <button class="action-btn edit-btn edit-doctor-btn" data-id="3">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn delete-doctor-btn" data-id="3">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="doctor-avatar">
-                            <img src="{{ asset('assets/doctor4.png') }}" alt="Doctor">
-                        </div>
-                        <div>
-                            <div class="doctor-name">Dra. Ana Martínez</div>
-                            <div class="doctor-specialty">Pediatría</div>
-                        </div>
-                    </div>
-                </td>
-                <td>Pediatría</td>
-                <td>ana.martinez@clinicamiel.com</td>
-                <td>+52 55 1357 2468</td>
-                <td><span class="status-badge status-active">Activo</span></td>
-                <td>
-                    <div class="doctor-actions">
-                        <button class="action-btn edit-btn edit-doctor-btn" data-id="4">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn delete-doctor-btn" data-id="4">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
+            @endif
         </tbody>
     </table>
     

@@ -18,7 +18,7 @@ class DoctorController extends Controller
     public function index()
     {
         $doctors = User::where('role', 'doctor')->get();
-        return view('admin.doctors.index', compact('doctors'));
+        return view('admin.doctors.doctors-list', compact('doctors'));
     }
 
     /**
@@ -73,11 +73,19 @@ class DoctorController extends Controller
      * Display the specified doctor.
      *
      * @param  int  $id
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
         $doctor = User::findOrFail($id);
+        
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'doctor' => $doctor
+            ]);
+        }
+        
         return view('admin.doctors.show', compact('doctor'));
     }
 
@@ -85,11 +93,19 @@ class DoctorController extends Controller
      * Show the form for editing the specified doctor.
      *
      * @param  int  $id
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
     public function edit($id)
     {
         $doctor = User::findOrFail($id);
+        
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'doctor' => $doctor
+            ]);
+        }
+        
         return view('admin.doctors.edit', compact('doctor'));
     }
 
@@ -98,7 +114,7 @@ class DoctorController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -107,31 +123,55 @@ class DoctorController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $doctor->id,
-            'age' => 'required|integer|min:18',
             'phoneNumber' => 'required|string|max:20',
-            'adress' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
+            'password' => 'nullable|string|min:8',
         ]);
 
         if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
-        $doctor->update([
+        $updateData = [
             'name' => $request->name,
             'email' => $request->email,
-            'age' => $request->age,
             'phoneNumber' => $request->phoneNumber,
-            'adress' => $request->adress,
             'status' => $request->status,
-        ]);
+        ];
+        
+        // Actualizar campos opcionales si se proporcionan
+        if ($request->filled('adress')) {
+            $updateData['adress'] = $request->adress;
+        }
+        
+        if ($request->filled('age')) {
+            $updateData['age'] = $request->age;
+        }
+        
+        $doctor->update($updateData);
 
         // Update password if provided
         if ($request->filled('password')) {
             $doctor->update([
                 'password' => Hash::make($request->password),
+            ]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Doctor actualizado exitosamente.',
+                'doctor' => $doctor
             ]);
         }
 
@@ -143,15 +183,35 @@ class DoctorController extends Controller
      * Remove the specified doctor from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
-        $doctor = User::findOrFail($id);
-        $doctor->delete();
-
-        return redirect()->route('admin.doctors.index')
-            ->with('success', 'Doctor eliminado exitosamente.');
+        try {
+            $doctor = User::findOrFail($id);
+            $doctorName = $doctor->name;
+            $doctor->delete();
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Doctor {$doctorName} eliminado exitosamente."
+                ]);
+            }
+    
+            return redirect()->route('admin.doctors.index')
+                ->with('success', 'Doctor eliminado exitosamente.');
+        } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al eliminar el doctor: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route('admin.doctors.index')
+                ->with('error', 'Error al eliminar el doctor: ' . $e->getMessage());
+        }
     }
 
     /**
