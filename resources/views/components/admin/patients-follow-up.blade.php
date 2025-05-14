@@ -1,22 +1,32 @@
-<div class="patient-follow-up">
-    <div class="follow-up-header">
-        <div class="follow-up-title">Pacientes en Seguimiento</div>
+<div class="dashboard-card patients-card">
+    <div class="card-header">
+        <h2>Pacientes en Seguimiento</h2>
         <a href="{{ url('admin/tablero/seguimiento-todos') }}" class="view-all">Ver todos</a>
     </div>
-    <div class="patient-list">
-        @forelse ($patients as $patient)
-        <div class="patient-item">
-            <div class="patient-avatar">{{ $patient->initials }}</div>
-            <div class="patient-info">
-                <div class="patient-name">{{ $patient->name }}</div>
-                <div class="patient-details">Última visita: {{ $patient->last_visit_date }} • Tratamiento: {{ $patient->treatment }}</div>
-            </div>
-            <span class="patient-status status-{{ $patient->status }}">{{ $patient->status_text }}</span>
-        </div>
-        @empty
-        <div class="patient-item">
-            <p class="text-center">No hay pacientes en seguimiento</p>
-        </div>
-        @endforelse
+    <div class="card-body">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Doctor</th>
+                    <th>Paciente</th>
+                    <th>Tratamiento</th>
+                    <th>Próxima Cita</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($patients as $patient)
+                <tr>
+                    <td>{{ $patient->doctor }}</td>
+                    <td>{{ $patient->patient }}</td>
+                    <td>{{ $patient->treatment }}</td>
+                    <td>{{ $patient->next_appointment }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="4" class="text-center">No hay pacientes en seguimiento</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>

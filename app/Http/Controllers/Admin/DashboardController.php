@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Bill;
+use App\Models\FollowUp;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -369,8 +370,6 @@ class DashboardController extends Controller
      */
     private function getUpcomingAppointments()
     {
-        $user = auth()->user();
-        
         // Preparar consulta base para todas las citas próximas
         $query = Appointment::with('user')
             ->where('date', '>=', Carbon::today())
@@ -378,31 +377,17 @@ class DashboardController extends Controller
             ->orderBy('date')
             ->limit(5);
         
-        // No filtramos por user_id, todos los usuarios ven todas las citas
-        
         $appointments = $query->get();
-            
+        
         $formattedAppointments = [];
         
         foreach ($appointments as $appointment) {
-            // Format date
-            $formattedDate = Carbon::parse($appointment->date)->format('d M, Y');
-            
-            // Determine status class
-            $statusClass = 'scheduled';
-            if ($appointment->status == 'Completado') {
-                $statusClass = 'completed';
-            } elseif ($appointment->status == 'Solicitado') {
-                $statusClass = 'requested';
-            }
-            
             $formattedAppointments[] = (object) [
                 'id' => $appointment->id,
+                'formatted_date' => Carbon::parse($appointment->date)->format('d M, Y'),
                 'patient_name' => $appointment->user->name,
-                'formatted_date' => $formattedDate,
-                'doctor_name' => 'Doctor Asignado', // Ya no tenemos user_id
-                'status_class' => $statusClass,
-                'status_text' => $appointment->status
+                'treatment' => $appointment->subject,
+                'status' => $appointment->status
             ];
         }
         
@@ -416,58 +401,22 @@ class DashboardController extends Controller
      */
     private function getPatientsInFollowUp()
     {
-        $user = auth()->user();
+        // Obtener seguimientos activos con sus relaciones
+        $followUps = FollowUp::with(['doctor', 'patient'])
+            ->where('status', 'active')
+            ->orderBy('start_date', 'desc')
+            ->limit(5)
+            ->get();
         
-        // Get patients with recent appointments
-        $query = User::where('role', 'paciente');
-        
-        // Tanto para administradores como doctores, mostramos todos los pacientes en seguimiento
-        $query->whereHas('appointments', function ($query) {
-            $query->where('date', '<=', Carbon::now())
-                  ->where('status', 'Completado');
-        });
-        
-        $query->with(['appointments' => function ($query) {
-            $query->where('status', 'Completado')
-                  ->orderBy('date', 'desc');
-        }]);
-        
-        $patients = $query->limit(5)->get();
-            
         $formattedPatients = [];
         
-        foreach ($patients as $patient) {
-            // Get last appointment
-            $lastAppointment = $patient->appointments->first();
-            
-            if (!$lastAppointment) {
-                continue;
-            }
-            
-            // Get initials
-            $nameParts = explode(' ', $patient->name);
-            $initials = '';
-            foreach ($nameParts as $part) {
-                if (!empty($part)) {
-                    $initials .= strtoupper(substr($part, 0, 1));
-                }
-            }
-            
-            // Format date
-            $formattedDate = Carbon::parse($lastAppointment->date)->format('d M, Y');
-            
-            // Determine status
-            $status = $patient->status === 'active' ? 'active' : 'pending';
-            $statusText = $patient->status === 'active' ? 'Activo' : 'Pendiente';
-            
+        foreach ($followUps as $followUp) {
             $formattedPatients[] = (object) [
-                'id' => $patient->id,
-                'name' => $patient->name,
-                'initials' => $initials,
-                'last_visit_date' => $formattedDate,
-                'treatment' => $lastAppointment->subject,
-                'status' => $status,
-                'status_text' => $statusText
+                'id' => $followUp->id,
+                'doctor' => $followUp->doctor->name,
+                'patient' => $followUp->patient->name,
+                'treatment' => $followUp->notes,
+                'next_appointment' => $followUp->end_date ? Carbon::parse($followUp->end_date)->format('d M, Y') : 'No definida'
             ];
         }
         
