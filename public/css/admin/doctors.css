@@ -222,11 +222,10 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
+    display: none; /* Oculto por defecto */
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    display: none;
+    z-index: 9999;
 }
 
 .modal-container {

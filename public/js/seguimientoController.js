@@ -91,28 +91,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const appointmentsHistoryList = document.getElementById('appointmentsHistoryList');
         if (!appointmentsHistoryList) return;
         
-        // Fetch appointments from API
-        fetch('/api/appointments')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error al cargar las citas');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Citas cargadas:', data);
-                renderAppointmentsHistory(data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Show sample data if API fails
-                const sampleAppointments = [
-                    { id: 1, date: '2025-04-20', doctor: 'Dr. Rosa Elba Martínez', subject: 'Electroterapia', modality: 'Consultorio', status: 'Completado' },
-                    { id: 2, date: '2025-04-10', doctor: 'Dr. Isaac Solís Martínez', subject: 'Hidroterapia', modality: 'Domicilio', status: 'Completado' },
-                    { id: 3, date: '2025-03-25', doctor: 'Dr. Karla Lorena Martínez Ávila', subject: 'Mecanoterapia', modality: 'Consultorio', status: 'Cancelado' }
-                ];
-                renderAppointmentsHistory(sampleAppointments);
-            });
+        // Datos de ejemplo para pruebas
+        const demoData = [
+            {
+                id: 1,
+                doctor: "Dr. Juan Pérez",
+                date: "2025-05-13",
+                time: "09:00",
+                status: "Completado",
+                timeToHuman: "Hoy",
+                service: "Consulta General"
+            },
+            {
+                id: 2,
+                doctor: "Dra. María López",
+                date: "2025-05-12",
+                time: "10:30",
+                status: "Completado",
+                timeToHuman: "Ayer",
+                service: "Limpieza Dental"
+            },
+            {
+                id: 3,
+                doctor: "Dr. Carlos Rodríguez",
+                date: "2025-05-11",
+                time: "11:00",
+                status: "Completado",
+                timeToHuman: "Antier",
+                service: "Extracción"
+            }
+        ];
+        
+        renderAppointmentsHistory(demoData);
     }
     
     // Render appointments history
@@ -120,32 +130,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const appointmentsHistoryList = document.getElementById('appointmentsHistoryList');
         if (!appointmentsHistoryList) return;
         
+        // Clear existing content
         appointmentsHistoryList.innerHTML = '';
         
         if (appointments.length === 0) {
-            appointmentsHistoryList.innerHTML = '<tr><td colspan="6" class="empty-message">No hay citas en el historial</td></tr>';
+            appointmentsHistoryList.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty-message">No hay citas registradas</td>
+                </tr>
+            `;
             return;
         }
         
         appointments.forEach(appointment => {
-            // Format date
-            const appointmentDate = new Date(appointment.date);
-            const formattedDate = appointmentDate.toLocaleDateString('es-ES');
-            
-            // Get doctor name
-            const doctorName = appointment.doctor || 'Dr. Asignado';
-            
-            // Get status class
-            const statusClass = getStatusClass(appointment.status);
-            
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${formattedDate}</td>
-                <td>${doctorName}</td>
-                <td>${appointment.subject}</td>
+                <td>${appointment.timeToHuman}</td>
+                <td>${appointment.doctor}</td>
+                <td>${appointment.specialty}</td>
                 <td>${appointment.modality}</td>
-                <td><span class="${statusClass}">${appointment.status}</span></td>
-                <td><button class="btn-view" data-id="${appointment.id}">Ver detalles</button></td>
+                <td><span class="appointment-status ${getStatusClass(appointment.status)}">${appointment.status}</span></td>
+                <td>
+                    <button class="action-btn" onclick="viewAppointmentDetails(${appointment.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
             `;
             
             appointmentsHistoryList.appendChild(row);
@@ -191,70 +200,57 @@ document.addEventListener('DOMContentLoaded', function() {
         upcomingAppointmentsList.innerHTML = '';
         
         if (appointments.length === 0) {
-            upcomingAppointmentsList.innerHTML = '<div class="empty-message">No hay citas próximas</div>';
+            upcomingAppointmentsList.innerHTML = '<div class="empty-message">No hay citas programadas</div>';
             return;
         }
         
         appointments.forEach(appointment => {
-            // Format date
-            const appointmentDate = new Date(appointment.date);
-            const formattedDate = appointmentDate.toLocaleDateString('es-ES');
-            
-            // Get status class
-            const statusClass = getStatusClass(appointment.status);
-            
             const appointmentCard = document.createElement('div');
             appointmentCard.className = 'appointment-card';
+            
+            // Format date and time
+            const appointmentDate = new Date(appointment.date);
+            const formattedDate = appointmentDate.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
             appointmentCard.innerHTML = `
-                <div class="card-header">
-                    <div class="card-date">${formattedDate} - ${appointment.time}</div>
-                    <div class="card-status ${statusClass}">${appointment.status}</div>
+                <div class="appointment-header">
+                    <div class="appointment-datetime">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${formattedDate}</span>
+                        <i class="fas fa-clock"></i>
+                        <span>${appointment.time}</span>
+                    </div>
                 </div>
-                <div class="card-details">
+                <div class="appointment-details">
                     <div class="detail-row">
                         <div class="detail-label">Doctor:</div>
                         <div class="detail-value">${appointment.doctor}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Especialidad:</div>
-                        <div class="detail-value">${appointment.subject}</div>
+                        <div class="detail-value">${appointment.specialty}</div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Modalidad:</div>
                         <div class="detail-value">${appointment.modality}</div>
                     </div>
                 </div>
-                <div class="card-actions">
-                    <button class="btn-reschedule" data-id="${appointment.id}">Reprogramar</button>
-                    <button class="btn-cancel" data-id="${appointment.id}">Cancelar</button>
+                <div class="appointment-actions">
+                    <button class="btn-action btn-view" onclick="viewAppointment(${appointment.id})">Ver</button>
+                    ${appointment.status === 'Agendado' ? `
+                        <button class="btn-action btn-cancel" onclick="cancelAppointment(${appointment.id})">Cancelar</button>
+                        <button class="btn-action btn-reschedule" onclick="rescheduleAppointment(${appointment.id})">Reagendar</button>
+                    ` : ''}
                 </div>
             `;
             
             upcomingAppointmentsList.appendChild(appointmentCard);
         });
-        
-        // Add event listeners to buttons
-        const rescheduleButtons = upcomingAppointmentsList.querySelectorAll('.btn-reschedule');
-        rescheduleButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const appointmentId = button.getAttribute('data-id');
-                rescheduleAppointment(appointmentId);
-            });
-        });
-        
-        const cancelButtons = upcomingAppointmentsList.querySelectorAll('.btn-cancel');
-        cancelButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const appointmentId = button.getAttribute('data-id');
-                cancelAppointment(appointmentId);
-            });
-        });
-    }
-    
-    // Reschedule appointment
-    function rescheduleAppointment(appointmentId) {
-        // This would typically open a modal for rescheduling
-        console.log(`Rescheduling appointment ${appointmentId}`);
     }
     
     // Cancel appointment
@@ -263,17 +259,46 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`Canceling appointment ${appointmentId}`);
     }
     
+    // Reschedule appointment
+    function rescheduleAppointment(appointmentId) {
+        // This would typically show a dialog to select new date/time
+        console.log(`Rescheduling appointment ${appointmentId}`);
+    }
+    
+    // View appointment
+    function viewAppointment(appointmentId) {
+        // This would typically show appointment details in a modal
+        console.log(`Viewing appointment ${appointmentId}`);
+    }
+    
     // Load doctors
     function loadDoctors() {
-        const doctorsList = document.getElementById('doctorsList');
-        if (!doctorsList) return;
+        const doctorsListElement = document.getElementById('doctorsList');
+        if (!doctorsListElement) return;
         
-        // Fetch doctors from API
-        // For now, we'll use sample data
+        // Sample data for doctors
         const doctors = [
-            { id: 1, name: 'Dr. Rosa Elba Martínez', specialty: 'Electroterapia', image: 'assets/doctor1.jpg', appointments: 12, rating: 4.8 },
-            { id: 2, name: 'Dr. Isaac Solís Martínez', specialty: 'Hidroterapia', image: 'assets/doctor2.jpg', appointments: 8, rating: 4.5 },
-            { id: 3, name: 'Dr. Karla Lorena Martínez Ávila', specialty: 'Mecanoterapia', image: 'assets/doctor3.jpg', appointments: 15, rating: 4.9 }
+            { 
+                id: 1, 
+                name: 'Dr. Rosa Elba', 
+                lastName: 'Martínez', 
+                specialty: 'Electroterapia',
+                nextAppointment: '2025-05-20'
+            },
+            { 
+                id: 2, 
+                name: 'Dr. Isaac', 
+                lastName: 'Solís Martínez', 
+                specialty: 'Hidroterapia',
+                nextAppointment: '2025-05-25'
+            },
+            { 
+                id: 3, 
+                name: 'Dr. Karla Lorena', 
+                lastName: 'Martínez Ávila', 
+                specialty: 'Mecanoterapia',
+                nextAppointment: '2025-06-02'
+            }
         ];
         
         renderDoctors(doctors);
@@ -281,48 +306,47 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Render doctors
     function renderDoctors(doctors) {
-        const doctorsList = document.getElementById('doctorsList');
-        if (!doctorsList) return;
+        const doctorsListElement = document.getElementById('doctorsList');
+        if (!doctorsListElement) return;
         
-        doctorsList.innerHTML = '';
+        doctorsListElement.innerHTML = '';
         
         if (doctors.length === 0) {
-            doctorsList.innerHTML = '<div class="empty-message">No hay doctores disponibles</div>';
+            doctorsListElement.innerHTML = '<div class="empty-message">No hay doctores asignados</div>';
             return;
         }
         
         doctors.forEach(doctor => {
             const doctorCard = document.createElement('div');
             doctorCard.className = 'doctor-card';
-            doctorCard.innerHTML = `
-                <img src="${doctor.image || 'assets/doctor-placeholder.jpg'}" alt="${doctor.name}" class="doctor-image">
-                <div class="doctor-info">
-                    <div class="doctor-name">${doctor.name}</div>
-                    <div class="doctor-specialty">${doctor.specialty}</div>
-                    <div class="doctor-stats">
-                        <div class="stat-item">
-                            <div class="stat-value">${doctor.appointments}</div>
-                            <div class="stat-label">Citas</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${doctor.rating}</div>
-                            <div class="stat-label">Calificación</div>
-                        </div>
-                    </div>
-                    <div class="doctor-actions">
-                        <a href="/appointment-clinic?doctor=${doctor.id}" class="btn-schedule">Agendar cita</a>
-                    </div>
-                </div>
-            `;
             
-            doctorsList.appendChild(doctorCard);
+            // Crear las iniciales para el avatar si no hay imagen
+            const initials = `${doctor.name[0]}${doctor.lastName ? doctor.lastName[0] : ''}`;
+            
+            // Formatear la fecha de la próxima cita
+            let nextAppointmentDisplay = 'No hay citas programadas';
+            if (doctor.nextAppointment) {
+                const appointmentDate = new Date(doctor.nextAppointment);
+                nextAppointmentDisplay = appointmentDate.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+            
+            doctorCard.innerHTML = `
+                <div class="doctor-avatar">
+                    <div class="avatar-circle">${initials}</div>
+                </div>
+                <h3 class="doctor-name">${doctor.name} ${doctor.lastName || ''}</h3>
+                <p class="doctor-specialty">${doctor.specialty}</p>
+                <div class="next-appointment">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>${nextAppointmentDisplay}</span>
+                </div>`;
+            
+            doctorsListElement.appendChild(doctorCard);
         });
-    }
-    
-    // Initialize charts
-    function initCharts() {
-        initAttendanceChart();
-        initTreatmentChart();
     }
     
     // Initialize attendance chart
@@ -343,28 +367,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Create chart
-        new Chart(attendanceChartElement, {
-            type: 'bar',
-            data: attendanceData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // Initialize treatment chart
-    function initTreatmentChart() {
-        const treatmentChartElement = document.getElementById('treatmentChart');
-        if (!treatmentChartElement) return;
         
         // Sample data for treatment chart
         const treatmentData = {

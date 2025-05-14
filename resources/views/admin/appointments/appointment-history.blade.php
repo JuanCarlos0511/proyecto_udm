@@ -136,7 +136,7 @@
                         <th class="checkbox-cell">
                             <div class="custom-checkbox" id="selectAll"></div>
                         </th>
-                        <th>ID Cita</th>
+                        <th>#</th>
                         <th>Paciente</th>
                         <th>Fecha</th>
                         <th>Hora</th>

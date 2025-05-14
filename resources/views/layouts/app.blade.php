@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{{ asset('css/components/specialties.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/profile-indicator.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/notifications.css') }}">
     
     <!-- Page-specific styles -->
     <link rel="stylesheet" href="{{ asset('css/pages/admin.css') }}">
@@ -42,7 +43,6 @@
                 </div>
                 <a href="{{ url('history') }}" class="{{ request()->is('history*') ? 'active' : '' }}">Historial</a>
                 <a href="{{ route('about') }}" class="{{ request()->is('sobre-nosotros*') ? 'active' : '' }}">Sobre Nosotros</a>
-                <a href="{{ url('admin') }}" class="{{ request()->is('admin*') ? 'active' : '' }}">Admin</a>
                 <a href="{{ url('seguimiento') }}" class="{{ request()->is('seguimiento*') ? 'active' : '' }}">Seguimiento</a>
             </nav>
             <div class="user-icon profile-dropdown">
@@ -68,6 +68,9 @@
                                     </span>
                                     @endif
                                 @endauth
+                            </a>
+                            <a href="{{ url('admin') }}" class="{{ request()->is('admin*') ? 'active' : '' }}">
+                                <i class="fas fa-user-shield"></i> Panel Admin
                             </a>
                             <a href="{{ url('ajustes') }}">
                                 <i class="fas fa-cog"></i> Ajustes
@@ -140,8 +143,83 @@
             </div>
         </footer>
     </div>
+    
+    <!-- Contenedor de notificaciones -->
+    <div class="notification-container" id="notificationContainer"></div>
 
     <script src="{{ asset('js/dropdown.js') }}"></script>
+    
+    <!-- Script para notificaciones -->
+    <script>
+        // Función para mostrar notificaciones
+        function showNotification(type, title, message, duration = 3000) {
+            const container = document.getElementById('notificationContainer');
+            
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            
+            // Determinar icono según el tipo
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'error') icon = 'exclamation-circle';
+            
+            // Estructura de la notificación
+            notification.innerHTML = `
+                <div class="notification-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+                <button class="notification-close">&times;</button>
+                <div class="notification-progress">
+                    <div class="notification-progress-bar"></div>
+                </div>
+            `;
+            
+            // Agregar al contenedor
+            container.appendChild(notification);
+            
+            // Mostrar con animación
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // Configurar cierre automático
+            const timeout = setTimeout(() => {
+                closeNotification(notification);
+            }, duration);
+            
+            // Evento para cerrar manualmente
+            const closeBtn = notification.querySelector('.notification-close');
+            closeBtn.addEventListener('click', () => {
+                clearTimeout(timeout);
+                closeNotification(notification);
+            });
+        }
+        
+        // Función para cerrar notificación
+        function closeNotification(notification) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }
+        
+        // Obtener el token CSRF para uso en peticiones AJAX
+        document.addEventListener('DOMContentLoaded', function() {
+            @auth
+                // Obtener el token CSRF (mantener para uso interno)
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 'No encontrado';
+                
+                // Mantener log en consola para depuración (no visible para el usuario)
+                console.log('CSRF Token:', csrfToken);
+            @endauth
+        });
+    </script>
+    
     @yield('scripts')
 </body>
 </html>

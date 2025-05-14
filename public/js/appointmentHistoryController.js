@@ -1,17 +1,25 @@
 // Appointment History Controller
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM elements
-    const appointmentHistoryTable = document.getElementById('appointmentHistory');
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const searchInput = document.querySelector('.search-box input');
-    const prevBtn = document.querySelector('.prev-btn');
-    const nextBtn = document.querySelector('.next-btn');
-    
-    // Store appointments data
+    // Variables globales
     let appointments = [];
-    let currentFilter = 'all';
     let currentPage = 1;
-    const itemsPerPage = 10; // Changed from 10 to 1 for testing
+    let itemsPerPage = 10;
+    let currentFilter = 'all';
+    let startDate = null;
+    let endDate = null;
+    
+    const appointmentHistoryTable = document.getElementById('appointmentHistory');
+    const searchInput = document.querySelector('.search-box input');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const prevButton = document.querySelector('.prev-btn');
+    const nextButton = document.querySelector('.next-btn');
+    const pageInfo = document.querySelector('.pagination span');
+    const periodFilter = document.getElementById('periodFilter');
+    const dateModal = document.getElementById('dateModal');
+    const closeDateModal = document.getElementById('closeDateModal');
+    const resetDatesBtn = document.getElementById('resetDates');
+    const applyDatesBtn = document.getElementById('applyDates');
+    const periodText = document.getElementById('periodText');
     
     // Initialize
     fetchAppointments();
@@ -31,17 +39,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const filteredData = filterAppointments(appointments, currentFilter).filter(item => {
-            return item.id.toString().includes(searchTerm) || 
-                   item.subject.toLowerCase().includes(searchTerm) || 
-                   (item.patient && item.patient.toLowerCase().includes(searchTerm));
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            currentPage = 1;
+            renderAppointments(filterAppointments(appointments, currentFilter));
+            updatePagination();
         });
-        renderAppointments(filteredData);
-    });
+    }
     
-    prevBtn.addEventListener('click', function() {
+    prevButton.addEventListener('click', function() {
         if (currentPage > 1) {
             currentPage--;
             updatePagination();
@@ -49,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    nextBtn.addEventListener('click', function() {
+    nextButton.addEventListener('click', function() {
         const filteredData = filterAppointments(appointments, currentFilter);
         const totalPages = Math.ceil(filteredData.length / itemsPerPage);
         
@@ -60,42 +66,176 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Inicializar Flatpickr para los selectores de fecha
+    const startDatePicker = flatpickr("#startDate", {
+        dateFormat: "Y-m-d",
+        locale: "es",
+        maxDate: "today",
+        onChange: function(selectedDates) {
+            // Actualizar la fecha mínima del selector de fecha final
+            if (selectedDates.length > 0) {
+                endDatePicker.set('minDate', selectedDates[0]);
+            }
+        }
+    });
+    
+    const endDatePicker = flatpickr("#endDate", {
+        dateFormat: "Y-m-d",
+        locale: "es",
+        maxDate: "today"
+    });
+    
+    // Event listener para abrir el modal de fechas
+    periodFilter.addEventListener('click', function() {
+        dateModal.style.display = 'flex';
+    });
+    
+    // Event listener para cerrar el modal de fechas
+    closeDateModal.addEventListener('click', function() {
+        dateModal.style.display = 'none';
+    });
+    
+    // Event listener para cerrar el modal al hacer clic fuera de él
+    window.addEventListener('click', function(event) {
+        if (event.target === dateModal) {
+            dateModal.style.display = 'none';
+        }
+    });
+    
+    // Event listener para restablecer las fechas
+    resetDatesBtn.addEventListener('click', function() {
+        startDatePicker.clear();
+        endDatePicker.clear();
+        startDate = null;
+        endDate = null;
+        periodText.textContent = 'Todos los periodos';
+        dateModal.style.display = 'none';
+        
+        // Actualizar la tabla con todas las citas
+        currentPage = 1;
+        renderAppointments(filterAppointments(appointments, currentFilter));
+        updatePagination();
+    });
+    
+    // Event listener para aplicar el filtro de fechas
+    applyDatesBtn.addEventListener('click', function() {
+        startDate = document.getElementById('startDate').value || null;
+        endDate = document.getElementById('endDate').value || null;
+        
+        if (startDate && endDate) {
+            // Formatear las fechas para mostrar
+            const formattedStartDate = new Date(startDate).toLocaleDateString('es-ES');
+            const formattedEndDate = new Date(endDate).toLocaleDateString('es-ES');
+            periodText.textContent = `${formattedStartDate} - ${formattedEndDate}`;
+        } else if (startDate) {
+            const formattedStartDate = new Date(startDate).toLocaleDateString('es-ES');
+            periodText.textContent = `Desde ${formattedStartDate}`;
+        } else if (endDate) {
+            const formattedEndDate = new Date(endDate).toLocaleDateString('es-ES');
+            periodText.textContent = `Hasta ${formattedEndDate}`;
+        } else {
+            periodText.textContent = 'Todos los periodos';
+        }
+        
+        dateModal.style.display = 'none';
+        
+        // Actualizar la tabla con las citas filtradas
+        currentPage = 1;
+        renderAppointments(filterAppointments(appointments, currentFilter));
+        updatePagination();
+    });
+    
     // Fetch appointments data
     function fetchAppointments() {
         // Show loading state
         appointmentHistoryTable.innerHTML = '<tr><td colspan="8" class="loading-message">Cargando citas...</td></tr>';
         
         // Get CSRF token for the request
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        // Mostrar información del token en consola para depuración
+        console.log('CSRF Token en fetchAppointments:', csrfToken);
+        console.log('Meta tag CSRF:', document.querySelector('meta[name="csrf-token"]'));
+        
+        // Verificar si el token existe
+        if (!csrfToken) {
+            console.error('No se encontró el token CSRF en el documento');
+            appointmentHistoryTable.innerHTML = `
+                <tr>
+                    <td colspan="8" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Error: No se encontró el token CSRF. Por favor, recarga la página.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        // Usar la variable global con el ID del usuario (definida en history.blade.php)
+        const userId = typeof AUTHENTICATED_USER_ID !== 'undefined' ? AUTHENTICATED_USER_ID : null;
+        
+        console.log('ID de usuario autenticado:', userId);
+        
+        // URL de la API - usando la ruta específica de usuario si está disponible
+        const apiUrl = userId ? `/api/appointments/user/${userId}` : '/api/appointments';
         
         // Fetch appointments from the API
-        fetch('/api/appointments', {
+        fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             },
+            credentials: 'include'
         })
         .then(response => {
+            console.log('Estado de la respuesta:', response.status);
+            
+            // Si el usuario no está autenticado (401)
+            if (response.status === 401) {
+                throw new Error('Usuario no autenticado. Por favor inicia sesión para ver tus citas.');
+            }
+            
+            // Otros errores
             if (!response.ok) {
                 throw new Error('Error al cargar las citas');
             }
+            
             return response.json();
         })
         .then(data => {
-            console.log('Citas cargadas desde la base de datos:', data);
+            console.log('Datos recibidos:', data);
             
-            // Process the appointment data
-            appointments = data.map(appointment => {
+            // Normalizar el formato de los datos (manejar tanto array directo como objeto con propiedad data)
+            let appointmentsData = Array.isArray(data) ? data : (data.data || []);
+            
+            console.log('Datos normalizados:', appointmentsData);
+            
+            // Verificar si hay citas
+            if (appointmentsData.length === 0) {
+                appointmentHistoryTable.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-message">
+                            <i class="fas fa-calendar-times"></i>
+                            No tienes citas registradas
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Procesar los datos de las citas para asegurar que tengan el formato correcto
+            appointments = appointmentsData.map(appointment => {
                 return {
                     id: appointment.id,
                     date: appointment.date,
-                    patient: appointment.user ? appointment.user.name : 'Usuario desconocido',
+                    patient: appointment.user ? appointment.user.name : 'Usuario',
                     subject: appointment.subject,
                     modality: appointment.modality,
                     status: appointment.status,
-                    price: parseFloat(appointment.price)
+                    price: parseFloat(appointment.price || 0)
                 };
             });
             
@@ -105,25 +245,69 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error al cargar citas:', error);
             
+            // Determinar el mensaje de error
+            let errorMessage = 'Error al cargar las citas. Por favor, intenta de nuevo más tarde.';
+            
+            if (error.message.includes('no autenticado')) {
+                errorMessage = 'Debes iniciar sesión para ver tu historial de citas personal.';
+                
+                // Mostrar notificación si está disponible
+                if (typeof showNotification === 'function') {
+                    showNotification('error', 'Acceso denegado', 'Debes iniciar sesión para ver tu historial de citas.', 5000);
+                }
+            }
+            
             // Show error message
             appointmentHistoryTable.innerHTML = `
                 <tr>
                     <td colspan="8" class="error-message">
                         <i class="fas fa-exclamation-circle"></i>
-                        Error al cargar las citas. Por favor, intenta de nuevo más tarde.
+                        ${errorMessage}
                     </td>
                 </tr>
             `;
         });
     }
     
-    // Filter appointments by status
+    // Filter appointments by status, search term and date range
     function filterAppointments(data, filter) {
-        if (filter === 'all') {
-            return data;
-        }
+        // Obtener el término de búsqueda
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
         
-        return data.filter(item => item.status.toLowerCase() === filter.toLowerCase());
+        return data.filter(item => {
+            // Filtrar por estado
+            const statusMatch = filter === 'all' || item.status.toLowerCase() === filter.toLowerCase();
+            
+            // Filtrar por término de búsqueda
+            const searchMatch = searchTerm === '' || 
+                item.date.toLowerCase().includes(searchTerm) ||
+                item.subject.toLowerCase().includes(searchTerm) ||
+                item.modality.toLowerCase().includes(searchTerm) ||
+                item.status.toLowerCase().includes(searchTerm) ||
+                String(item.price).includes(searchTerm);
+            
+            // Filtrar por rango de fechas
+            let dateMatch = true;
+            if (startDate || endDate) {
+                const appointmentDate = new Date(item.date);
+                
+                if (startDate && endDate) {
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59); // Incluir todo el día final
+                    dateMatch = appointmentDate >= start && appointmentDate <= end;
+                } else if (startDate) {
+                    const start = new Date(startDate);
+                    dateMatch = appointmentDate >= start;
+                } else if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59); // Incluir todo el día final
+                    dateMatch = appointmentDate <= end;
+                }
+            }
+            
+            return statusMatch && searchMatch && dateMatch;
+        });
     }
     
     // Render appointments to table
@@ -162,14 +346,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }).format(appointment.price);
             
             row.innerHTML = `
-                <td>${appointment.id}</td>
                 <td>${formattedDate}</td>
-                <td>${appointment.patient}</td>
                 <td>${appointment.subject}</td>
                 <td>${appointment.modality}</td>
                 <td><span class="${statusClass}">${appointment.status}</span></td>
                 <td>${formattedPrice}</td>
-                <td><button class="view-details-btn">Ver detalles</button></td>
             `;
             
             appointmentHistoryTable.appendChild(row);
@@ -184,8 +365,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.pagination span').textContent = `Página ${currentPage} de ${totalPages}`;
         
         // Update button states
-        prevBtn.disabled = currentPage === 1;
-        nextBtn.disabled = currentPage === totalPages;
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === totalPages;
     }
     
     // Get status class based on status text

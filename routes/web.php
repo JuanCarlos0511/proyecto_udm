@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\FollowUpController;
 use App\Http\Middleware\CheckAuthenticated;
 use App\Http\Middleware\CheckAdminDoctor;
 
@@ -178,9 +179,6 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     Route::resource('/admin/facturas', 'App\Http\Controllers\Admin\BillController', ['as' => 'admin'])->except(['index', 'store']);
     
     // Rutas para gestión de doctores
-    Route::get('/admin/doctores', function() {
-        return view('admin.doctors.doctors-list');
-    })->name('admin.doctors.index');
     Route::resource('/admin/doctores', 'App\Http\Controllers\Admin\DoctorController', ['as' => 'admin'])->except(['index']);
     Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@getDoctorsData')->name('admin.doctors.data');
     
@@ -196,8 +194,27 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     
     // Rutas para pacientes en seguimiento
     Route::get('admin/tablero/seguimiento-todos', function() {
-        return view('admin.dashboard.all-patient-followups');
+        // Obtener todos los seguimientos con relaciones cargadas
+        $followUps = \App\Models\FollowUp::with(['doctor', 'patient'])
+            ->active()
+            ->get();
+            
+        return view('admin.dashboard.all-patient-followups', compact('followUps'));
     })->name('admin.all-patient-followups');
+    
+    // Rutas para gestión de seguimientos
+    Route::resource('admin/seguimiento', 'App\Http\Controllers\FollowUpController', ['as' => 'follow-ups', 'names' => [
+        'index' => 'follow-ups.index',
+        'create' => 'follow-ups.create',
+        'store' => 'follow-ups.store',
+        'show' => 'follow-ups.show',
+        'edit' => 'follow-ups.edit',
+        'update' => 'follow-ups.update',
+        'destroy' => 'follow-ups.destroy'
+    ]]);
+    Route::get('admin/seguimiento/crear/{patient_id}', [FollowUpController::class, 'createForPatient'])->name('follow-ups.create-for-patient');
+    Route::get('admin/seguimiento/por-doctor/{doctor_id}', [FollowUpController::class, 'getByDoctor'])->name('follow-ups.by-doctor');
+    Route::get('admin/seguimiento/por-paciente/{patient_id}', [FollowUpController::class, 'getByPatient'])->name('follow-ups.by-patient');
     
     Route::get('/admin/pacientes', function() {
         return view('admin.patients.patients-list');
@@ -215,8 +232,20 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     // New appointment routes
     Route::get('/appointment-clinic', [AppointmentController::class, 'create'])->name('appointment.clinic');
     Route::get('/appointment-home', function () {
-        return view('appointment-home');
-    });
+    $followUps = \App\Models\FollowUp::with(['doctor', 'patient'])
+        ->active()
+        ->get()
+        ->map(function($followUp) {
+            return [
+                'doctor' => $followUp->doctor->name,
+                'patient' => $followUp->patient->name,
+                'treatment' => $followUp->notes,
+                'next_appointment' => $followUp->end_date ? $followUp->end_date->format('d/m/Y') : 'Sin fecha definida'
+            ];
+        });
+    
+    return view('appointment-home', ['followUps' => $followUps]);
+})->name('appointment-home');
     
     Route::get('/history', function () {
         return view('history');
@@ -226,9 +255,9 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
         return view('schedule');
     });
     
-    Route::get('/seguimiento', function () {
-        return view('seguimiento');
-    });
+    // Rutas públicas para seguimientos
+    Route::get('/seguimiento', [FollowUpController::class, 'myDoctors'])->name('follow-ups.my-doctors');
+    Route::get('/seguimiento/{id}', [FollowUpController::class, 'showPublic'])->name('follow-ups.show-public');
     
     Route::get('/doctor-history', function () {
         return view('doctor-history');

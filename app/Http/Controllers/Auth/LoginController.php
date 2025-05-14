@@ -40,9 +40,8 @@ class LoginController extends Controller
             $user = Auth::user();
 
             // Redireccionar según el rol del usuario
-            if ($user->role === 'doctor') {
-                return redirect('/doctor-appointment');
-            } elseif ($user->role === 'admin') {
+            if ($user->role === 'doctor' || $user->role === 'admin') {
+                // Tanto doctores como administradores van al tablero de administración
                 return redirect('/admin/tablero');
             } else {
                 // Para usuarios con otros roles (pacientes, etc.)

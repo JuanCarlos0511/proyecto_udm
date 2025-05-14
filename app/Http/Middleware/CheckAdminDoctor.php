@@ -22,6 +22,11 @@ class CheckAdminDoctor
             return redirect()->route('login')
                 ->with('error', 'Debes iniciar sesión para acceder a esta página');
         }
+        
+        // Redireccionar a la ruta correcta si se accede directamente a /admin
+        if ($request->path() === 'admin') {
+            return redirect('/admin/tablero');
+        }
 
         // Verificar si el usuario tiene el rol de administrador o doctor
         // $user = Auth::user();

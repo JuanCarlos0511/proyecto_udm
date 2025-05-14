@@ -3,7 +3,7 @@
 @section('title', 'Plan de Seguimiento')
 
 @section('extra-css')
-    <link rel="stylesheet" href="{{ asset('css/pages/seguimiento.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/seguimiento.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 @endsection
 
@@ -37,7 +37,6 @@
                     </div>
                 </div>
                 <div class="profile-actions">
-                    <a href="{{ route('profile') }}" class="btn-edit-profile">Editar perfil</a>
                 </div>
             </div>
         </div>
@@ -48,7 +47,6 @@
                 <button class="tab-btn active" data-tab="appointments">Historial de citas</button>
                 <button class="tab-btn" data-tab="upcoming">Próximas citas</button>
                 <button class="tab-btn" data-tab="doctors">Mis doctores</button>
-                <button class="tab-btn" data-tab="progress">Progreso</button>
             </div>
             
             <div class="tabs-content">
@@ -101,26 +99,7 @@
                     </div>
                 </div>
                 
-                <!-- Progress Tab -->
-                <div class="tab-pane" id="progress">
-                    <h3>Mi progreso</h3>
-                    <div class="progress-charts">
-                        <div class="chart-container">
-                            <h4>Asistencia a citas</h4>
-                            <div class="chart" id="attendanceChart"></div>
-                        </div>
-                        <div class="chart-container">
-                            <h4>Progreso de tratamiento</h4>
-                            <div class="chart" id="treatmentChart"></div>
-                        </div>
-                    </div>
-                    <div class="notes-section">
-                        <h4>Notas del doctor</h4>
-                        <div class="doctor-notes" id="doctorNotes">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>

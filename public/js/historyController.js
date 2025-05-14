@@ -166,43 +166,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Render appointments to table
     function renderAppointments(appointmentsToRender) {
-        appointmentHistoryTable.innerHTML = '';
+        const tbody = appointmentHistoryTable.querySelector('tbody');
+        tbody.innerHTML = '';
         
         if (appointmentsToRender.length === 0) {
-            const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = `<td colspan="7" class="empty-message">
-                <i class="far fa-calendar-times"></i>
-                No hay citas en el periodo seleccionado
-            </td>`;
-            appointmentHistoryTable.appendChild(emptyRow);
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty-message">No hay citas registradas en este periodo</td>
+                </tr>
+            `;
             return;
         }
         
         appointmentsToRender.forEach(appointment => {
             const row = document.createElement('tr');
-            
-            // Format date
-            const appointmentDate = new Date(appointment.date);
-            const formattedDate = appointmentDate.toLocaleDateString('es-ES');
-            
-            // Get status class
-            const statusClass = getStatusClass(appointment.status);
-            
             row.innerHTML = `
                 <td>${appointment.id}</td>
                 <td>${appointment.doctor}</td>
-                <td>${formattedDate}</td>
+                <td>${appointment.timeToHuman}</td>
                 <td>${appointment.start_time || '09:00'}</td>
                 <td>${appointment.end_time || '09:30'}</td>
-                <td><span class="${statusClass}">${appointment.status}</span></td>
-                <td class="actions-cell">
+                <td>
+                    <span class="appointment-status ${getStatusClass(appointment.status)}">${appointment.status}</span>
                     <button class="delete-btn" data-id="${appointment.id}">
-                        <i class="fas fa-trash-alt"></i>
+                        <i class="fas fa-trash"></i>
                     </button>
                 </td>
             `;
             
-            appointmentHistoryTable.appendChild(row);
+            tbody.appendChild(row);
         });
     }
     

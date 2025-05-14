@@ -93,6 +93,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
 }
 
 .upload-button {

@@ -6,8 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const removeButton = document.querySelector('.remove-button');
     
     if (uploadButton) {
-        uploadButton.addEventListener('click', function() {
-            photoInput.click();
+        uploadButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (photoInput) {
+                photoInput.click();
+            }
         });
     }
     

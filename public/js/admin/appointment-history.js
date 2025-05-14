@@ -1,3 +1,24 @@
+// Datos de ejemplo para las citas
+const appointmentsData = [
+    { id: 1, patient: 'María González', doctor: 'Dr. Juan Pérez', date: '2025-05-13', time: '09:00 AM', status: 'completed', service: 'Consulta General', timeToHuman: 'Hoy' },
+    { id: 2, patient: 'Carlos Rodríguez', doctor: 'Dra. María López', date: '2025-05-13', time: '10:30 AM', status: 'pending', service: 'Limpieza Dental', timeToHuman: 'Hoy' },
+    { id: 3, patient: 'Ana Martínez', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-13', time: '11:00 AM', status: 'cancelled', service: 'Extracción', timeToHuman: 'Hoy' },
+    { id: 4, patient: 'José López', doctor: 'Dr. Juan Pérez', date: '2025-05-12', time: '09:30 AM', status: 'completed', service: 'Consulta General', timeToHuman: 'Ayer' },
+    { id: 5, patient: 'Laura Sánchez', doctor: 'Dra. María López', date: '2025-05-12', time: '10:00 AM', status: 'pending', service: 'Ortodoncia', timeToHuman: 'Ayer' },
+    { id: 6, patient: 'Pedro Ramírez', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-12', time: '11:30 AM', status: 'completed', service: 'Limpieza Dental', timeToHuman: 'Ayer' },
+    { id: 7, patient: 'Isabel Torres', doctor: 'Dr. Juan Pérez', date: '2025-05-11', time: '09:00 AM', status: 'pending', service: 'Consulta General', timeToHuman: 'Antier' },
+    { id: 8, patient: 'Miguel Flores', doctor: 'Dra. María López', date: '2025-05-11', time: '10:30 AM', status: 'cancelled', service: 'Extracción', timeToHuman: 'Antier' },
+    { id: 9, patient: 'Carmen Ruiz', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-11', time: '11:00 AM', status: 'completed', service: 'Ortodoncia', timeToHuman: 'Antier' },
+    { id: 10, patient: 'Daniel Morales', doctor: 'Dr. Juan Pérez', date: '2025-05-10', time: '09:30 AM', status: 'pending', service: 'Limpieza Dental', timeToHuman: 'Hace 3 días' },
+    { id: 11, patient: 'Isabel Jiménez', doctor: 'Dra. María López', date: '2025-05-10', time: '10:00 AM', status: 'completed', service: 'Consulta General', timeToHuman: 'Hace 3 días' },
+    { id: 12, patient: 'Roberto Vargas', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-10', time: '11:30 AM', status: 'cancelled', service: 'Extracción', timeToHuman: 'Hace 3 días' }
+];
+
+// Variables para la paginación
+const itemsPerPage = 5;
+let currentPage = 1;
+let filteredData = [...appointmentsData];
+
 document.addEventListener('DOMContentLoaded', function() {
     // Variables para el rango de fechas en la sección superior
     const startDatePicker = document.getElementById('startDatePicker');
@@ -304,28 +325,83 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+}
+
+// Función para actualizar la paginación
+// Función para renderizar las citas
+function renderAppointments() {
+    const tableBody = document.querySelector('#appointmentsTable tbody');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
     
-    // Datos de ejemplo para las citas
-    const appointmentsData = [
-        { id: 1, patient: 'María González', doctor: 'Dr. Juan Pérez', date: '2022-09-15', time: '09:00 AM', status: 'completed', service: 'Consulta General' },
-        { id: 2, patient: 'Carlos Rodríguez', doctor: 'Dra. María López', date: '2022-09-16', time: '10:30 AM', status: 'pending', service: 'Limpieza Dental' },
-        { id: 3, patient: 'Ana Martínez', doctor: 'Dr. Carlos Rodríguez', date: '2022-09-17', time: '11:00 AM', status: 'cancelled', service: 'Extracción' },
-        { id: 4, patient: 'José López', doctor: 'Dr. Juan Pérez', date: '2022-09-18', time: '09:30 AM', status: 'completed', service: 'Consulta General' },
-        { id: 5, patient: 'Laura Sánchez', doctor: 'Dra. María López', date: '2022-09-19', time: '10:00 AM', status: 'pending', service: 'Ortodoncia' },
-        { id: 6, patient: 'Pedro García', doctor: 'Dr. Carlos Rodríguez', date: '2022-09-20', time: '11:30 AM', status: 'completed', service: 'Limpieza Dental' },
-        { id: 7, patient: 'Sofía Flores', doctor: 'Dr. Juan Pérez', date: '2022-09-21', time: '09:00 AM', status: 'pending', service: 'Consulta General' },
-        { id: 8, patient: 'Miguel Torres', doctor: 'Dra. María López', date: '2022-09-22', time: '10:30 AM', status: 'cancelled', service: 'Extracción' },
-        { id: 9, patient: 'Carmen Ruiz', doctor: 'Dr. Carlos Rodríguez', date: '2022-09-23', time: '11:00 AM', status: 'completed', service: 'Ortodoncia' },
-        { id: 10, patient: 'Daniel Morales', doctor: 'Dr. Juan Pérez', date: '2022-09-24', time: '09:30 AM', status: 'pending', service: 'Limpieza Dental' },
-        { id: 11, patient: 'Isabel Jiménez', doctor: 'Dra. María López', date: '2022-09-25', time: '10:00 AM', status: 'completed', service: 'Consulta General' },
-        { id: 12, patient: 'Roberto Vargas', doctor: 'Dr. Carlos Rodríguez', date: '2022-09-26', time: '11:30 AM', status: 'cancelled', service: 'Extracción' }
-    ];
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginatedData = filteredData.slice(start, end);
     
-    // Variables para la paginación
-    const itemsPerPage = 5;
-    let currentPage = 1;
-    let filteredData = [...appointmentsData];
+    if (paginatedData.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = `
+            <td colspan="8" class="empty-message">
+                No hay citas que coincidan con los filtros seleccionados
+            </td>
+        `;
+        tableBody.appendChild(emptyRow);
+        return;
+    }
     
+    paginatedData.forEach(appointment => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="checkbox-cell">
+                <div class="custom-checkbox"></div>
+            </td>
+            <td>#APT-${appointment.id}</td>
+            <td>${appointment.patient}</td>
+            <td>${appointment.timeToHuman}</td>
+            <td>${appointment.time}</td>
+            <td>${appointment.service}</td>
+            <td><span class="appointment-status status-${appointment.status}">${appointment.status}</span></td>
+            <td>
+                <div class="appointment-actions">
+                    <div class="action-button">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="action-button">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div class="action-button">
+                        <i class="fas fa-trash"></i>
+                    </div>
+                </div>
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+// Función para actualizar la paginación
+function updatePagination() {
+    const pagination = document.getElementById('appointmentsPagination');
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    
+    pagination.innerHTML = '';
+    
+    // Agregar botón anterior
+    const prevButton = document.createElement('a');
+    prevButton.href = '#';
+    prevButton.className = 'pagination-item';
+    prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    prevButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (currentPage > 1) {
+            currentPage--;
+            updatePagination();
+            renderAppointments();
+        }
+    });
+    pagination.appendChild(prevButton);
     // Función para filtrar las citas
     function filterAppointments(statusFilters, doctorFilter, dateFrom, dateTo) {
         filteredData = appointmentsData.filter(appointment => {
@@ -406,23 +482,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             row.innerHTML = `
-                <td>
-                    <div class="custom-checkbox" id="checkbox-${appointment.id}"></div>
+                <td class="checkbox-cell">
+                    <div class="custom-checkbox"></div>
                 </td>
+                <td>#APT-${appointment.id}</td>
                 <td>${appointment.patient}</td>
-                <td>${appointment.doctor}</td>
-                <td>${appointment.date}</td>
+                <td>${appointment.timeToHuman}</td>
                 <td>${appointment.time}</td>
-                <td>
-                    <span class="appointment-status ${statusClass}">${statusText}</span>
-                </td>
                 <td>${appointment.service}</td>
+                <td><span class="appointment-status status-${appointment.status}">${appointment.status}</span></td>
+                <td>
+                    <div class="appointment-actions">
+                        <div class="action-button">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="action-button">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="action-button">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                    </div>
+                </td>
             `;
             
             tableBody.appendChild(row);
             
             // Agregar funcionalidad al checkbox
-            const checkbox = document.getElementById(`checkbox-${appointment.id}`);
+            const checkbox = document.querySelector(`.custom-checkbox`);
             checkbox.addEventListener('click', function() {
                 this.classList.toggle('checked');
                 

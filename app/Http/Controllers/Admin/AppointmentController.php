@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\TimeHelper;
 
 class AppointmentController extends Controller
 {
@@ -24,12 +25,20 @@ class AppointmentController extends Controller
         // Si es doctor, mostrar solo las citas asociadas a pacientes que ha atendido
         if ($user->role === 'administrador') {
             $appointments = Appointment::with('user')->orderBy('date', 'desc')->get();
+            $appointments->transform(function ($appointment) {
+                $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
+                return $appointment;
+            });
         } else { // doctor
             // Para los doctores, podemos filtrar por citas que tengan un subject o diagnosis relacionado con su especialidad
             // O simplemente mostrar todas las citas para que puedan ver la agenda general
             $appointments = Appointment::with('user')
                 ->orderBy('date', 'desc')
                 ->get();
+            $appointments->transform(function ($appointment) {
+                $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
+                return $appointment;
+            });
         }
         
         return view('admin.appointments.index', compact('appointments'));
@@ -191,6 +200,12 @@ class AppointmentController extends Controller
                 ->orderBy('date', 'desc')
                 ->get();
         }
+        
+        // Agregar el tiempo en formato legible
+        $appointments->transform(function ($appointment) {
+            $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
+            return $appointment;
+        });
             
         return view('admin.appointments.history', compact('appointments'));
     }
@@ -253,6 +268,7 @@ class AppointmentController extends Controller
                     'id' => $appointment->id,
                     'patient_name' => $appointment->user->name,
                     'date' => Carbon::parse($appointment->date)->format('d M, Y'),
+                    'timeToHuman' => TimeHelper::timeToHuman($appointment->date),
                     'subject' => $appointment->subject,
                     'status' => $appointment->status,
                     'modality' => $appointment->modality,

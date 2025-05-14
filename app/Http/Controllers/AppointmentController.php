@@ -9,13 +9,59 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\TimeHelper;
 
 class AppointmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $appointments = Appointment::with('user')->get();
-        return response()->json($appointments);
+        try {
+            // Obtener el ID del usuario autenticado
+            $userId = Auth::id();
+            
+            // Si no hay usuario autenticado, devolver error
+            if (!$userId) {
+                return response()->json([
+                    'message' => 'Usuario no autenticado',
+                    'data' => []
+                ], 401);
+            }
+            
+            // Filtrar citas por el usuario autenticado
+            $query = Appointment::with('user')
+                ->where('user_id', $userId);
+            
+            // Aplicar filtros adicionales si se proporcionan
+            if ($request->has('status')) {
+                $query->where('status', $request->status);
+            }
+            
+            $appointments = $query->get();
+            
+            // Registrar para depuración
+            Log::info('Citas filtradas por usuario:', [
+                'user_id' => $userId,
+                'count' => $appointments->count()
+            ]);
+            
+            // Agregar el tiempo en formato legible
+            $appointments->transform(function ($appointment) {
+                $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
+                return $appointment;
+            });
+
+            return response()->json([
+                'message' => 'Citas cargadas exitosamente',
+                'data' => $appointments
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al cargar citas: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al cargar las citas',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function create()
@@ -163,12 +209,24 @@ class AppointmentController extends Controller
     public function getByUser(User $user)
     {
         $appointments = $user->appointments;
+        
+        // Agregar el tiempo en formato legible
+        $appointments->transform(function ($appointment) {
+            $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
+            return $appointment;
+        });
         return response()->json($appointments);
     }
 
     public function getByStatus($status)
     {
         $appointments = Appointment::where('status', $status)->with('user')->get();
+        
+        // Agregar el tiempo en formato legible
+        $appointments->transform(function ($appointment) {
+            $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
+            return $appointment;
+        });
         return response()->json($appointments);
     }
 }

@@ -49,7 +49,7 @@ class GoogleController extends Controller
                 
                 // Redirigir según el rol del usuario
                 if ($findUser->role === 'administrador' || $findUser->role === 'doctor') {
-                    return redirect('/admin/dashboard')->with('success', 'Has iniciado sesión correctamente');
+                    return redirect('/admin/tablero')->with('success', 'Has iniciado sesión correctamente');
                 } else {
                     return redirect('/')->with('success', 'Has iniciado sesión correctamente');
                 }
@@ -66,7 +66,7 @@ class GoogleController extends Controller
                     
                     // Redirigir según el rol del usuario
                     if ($existingUser->role === 'administrador' || $existingUser->role === 'doctor') {
-                        return redirect('/admin/dashboard')->with('success', 'Has iniciado sesión correctamente');
+                        return redirect('/admin/tablero')->with('success', 'Has iniciado sesión correctamente');
                     } else {
                         return redirect('/')->with('success', 'Has iniciado sesión correctamente');
                     }

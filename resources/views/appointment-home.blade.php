@@ -4,6 +4,7 @@
 
 @section('extra-css')
     <link rel="stylesheet" href="{{ asset('css/components/modern-appointment.css') }}">
+
 @endsection
 
 @section('container-class', 'modern-appointment-page')
@@ -12,6 +13,7 @@
     <div class="navigation-buttons">
         <button id="backToHome" class="back-btn"><i class="fas fa-arrow-left"></i> Regresar</button>
     </div>
+
 
     <div class="modern-appointment-container">
         <!-- Columna 1: Formulario Principal -->

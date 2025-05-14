@@ -23,17 +23,24 @@
         <form id="profile-edit-form" action="{{ url('admin/perfil/actualizar') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="profile-photo-container">
-                <img src="{{ asset('img/doctor-avatar.jpg') }}" alt="Foto de perfil" class="profile-photo">
+                <img src="{{ Auth::user()->photo_path ? asset(Auth::user()->photo_path) : asset('img/doctor-avatar.jpg') }}" 
+                     alt="Foto de perfil" 
+                     class="profile-photo">
                 <div class="photo-actions">
-                    <input type="file" id="photo-upload" name="photo" accept="image/*" style="display: none;">
-                    <div class="photo-action-button upload-button">
+                    <input type="file" 
+                           id="photo-upload" 
+                           name="photo" 
+                           accept="image/*" 
+                           style="display: none;" 
+                           aria-label="Subir foto de perfil">
+                    <button type="button" class="photo-action-button upload-button" title="Subir foto">
                         <i class="fas fa-upload"></i>
                         <span>Subir Foto</span>
-                    </div>
-                    <div class="photo-action-button remove-button">
+                    </button>
+                    <button type="button" class="photo-action-button remove-button" title="Eliminar foto">
                         <i class="fas fa-trash"></i>
                         <span>Eliminar Foto</span>
-                    </div>
+                    </button>
                 </div>
             </div>
             <div class="profile-edit-form">
