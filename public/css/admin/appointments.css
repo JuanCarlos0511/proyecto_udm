@@ -80,6 +80,57 @@
     color: #ff4d4d;
 }
 
+.status-solicitado {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-agendado {
+    background-color: #e8f5e9;
+    color: #43a047;
+}
+
+.actions-column {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.btn-success {
+    background-color: #43a047;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #e53935;
+    color: white;
+}
+
+.btn-primary {
+    background-color: #1976d2;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
 .pagination {
     display: flex;
     justify-content: center;
@@ -88,21 +139,33 @@
 }
 
 .pagination-item {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 35px;
     height: 35px;
-    border-radius: 8px;
-    background-color: #f5f6fa;
-    color: #333;
+    margin: 0 5px;
+    border-radius: 50%;
+    color: #6c757d;
     text-decoration: none;
-    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.pagination-item:hover {
+    background-color: #e9ecef;
+    color: #6f42c1;
+    text-decoration: none;
 }
 
 .pagination-item.active {
-    background-color: #6c5dd3;
+    background-color: #6f42c1;
     color: white;
+}
+
+.pagination-item.disabled {
+    color: #ccc;
+    pointer-events: none;
+    cursor: default;
 }
 
 .pagination-separator {

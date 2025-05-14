@@ -185,14 +185,17 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@getDoctorsData')->name('admin.doctors.data');
     
     // Rutas para citas
-    Route::get('/admin/tablero/citas-todas', function() {
-        return view('admin.appointments.all-appointments');
-    })->name('admin.appointment-all-appointments');
-    
-    Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index']);
+    Route::get('/admin/tablero/citas-todas', 'App\Http\Controllers\Admin\AppointmentController@index')->name('admin.appointments.index');
+    Route::get('/admin/citas/{id}/editar', 'App\Http\Controllers\Admin\AppointmentController@edit')->name('admin.appointments.edit');
+    Route::put('/admin/citas/{id}', 'App\Http\Controllers\Admin\AppointmentController@update')->name('admin.appointments.update');
+    Route::delete('/admin/citas/{id}', 'App\Http\Controllers\Admin\AppointmentController@destroy')->name('admin.appointments.destroy');
+    Route::get('/admin/citas/crear', 'App\Http\Controllers\Admin\AppointmentController@create')->name('admin.appointments.create');
+    Route::post('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController@store')->name('admin.appointments.store');
     Route::get('/admin/citas-data', 'App\Http\Controllers\Admin\AppointmentController@getAppointmentsData')->name('admin.appointments.data');
     Route::get('/admin/citas-domicilio', 'App\Http\Controllers\Admin\AppointmentController@createHomeAppointment')->name('admin.appointments.home');
     Route::get('/admin/citas-consultorio', 'App\Http\Controllers\Admin\AppointmentController@createClinicAppointment')->name('admin.appointments.clinic');
+    Route::patch('/admin/citas/{id}/estado', 'App\Http\Controllers\Admin\AppointmentController@updateStatus')->name('admin.appointments.update-status');
+    Route::get('/admin/citas/{id}/editar', 'App\Http\Controllers\Admin\AppointmentController@edit')->name('admin.appointments.edit');
     
     // Rutas para pacientes en seguimiento
     Route::get('admin/tablero/seguimiento-todos', function() {

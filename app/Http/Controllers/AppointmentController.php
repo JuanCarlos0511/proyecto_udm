@@ -102,19 +102,20 @@ class AppointmentController extends Controller
                 throw $e;
             }
 
-            // Create appointment for the patient
+            // Create a single appointment for the patient
             $appointment = new Appointment($appointmentData);
             $appointment->user_id = $user->id;
-            $appointment->save();
-            Log::info('Cita del paciente guardada correctamente:', ['id' => $appointment->id]);
             
-            // If a doctor is selected, create a duplicate appointment for the doctor
+            // If a doctor is selected, store it in the appointment as a reference
+            // but don't create a duplicate appointment
             if (isset($appointmentData['doctor_id']) && !empty($appointmentData['doctor_id'])) {
-                $doctorAppointment = new Appointment($appointmentData);
-                $doctorAppointment->user_id = $appointmentData['doctor_id']; // Use doctor's user_id
-                $doctorAppointment->save();
-                Log::info('Cita del doctor guardada correctamente:', ['id' => $doctorAppointment->id]);
+                // Podemos almacenar el doctor_id en un campo adicional si es necesario
+                // o simplemente mantenerlo en el campo existente
+                $appointment->doctor_id = $appointmentData['doctor_id'];
             }
+            
+            $appointment->save();
+            Log::info('Cita guardada correctamente:', ['id' => $appointment->id]);
 
             DB::commit();
 

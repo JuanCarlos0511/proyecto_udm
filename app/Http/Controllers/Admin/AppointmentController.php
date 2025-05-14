@@ -12,6 +12,35 @@ use Illuminate\Support\Facades\Validator;
 class AppointmentController extends Controller
 {
     /**
+     * Update the status of an appointment.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:Agendado,Cancelado',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $appointment->update([
+            'status' => $request->status
+        ]);
+
+        $statusMessage = $request->status === 'Agendado' ? 'aceptada' : 'rechazada';
+        return redirect()->route('admin.appointments.index')
+            ->with('success', "Cita {$statusMessage} exitosamente.");
+    }
+    /**
      * Display a listing of the appointments.
      *
      * @return \Illuminate\View\View
@@ -20,19 +49,29 @@ class AppointmentController extends Controller
     {
         $user = auth()->user();
         
+        // Consulta base con las relaciones necesarias
+        $query = Appointment::with('user')
+            ->whereDate('date', '>=', Carbon::today())
+            ->orderBy('date', 'asc');
+
         // Si es administrador, mostrar todas las citas
         // Si es doctor, mostrar solo las citas asociadas a pacientes que ha atendido
-        if ($user->role === 'administrador') {
-            $appointments = Appointment::with('user')->orderBy('date', 'desc')->get();
-        } else { // doctor
-            // Para los doctores, podemos filtrar por citas que tengan un subject o diagnosis relacionado con su especialidad
-            // O simplemente mostrar todas las citas para que puedan ver la agenda general
-            $appointments = Appointment::with('user')
-                ->orderBy('date', 'desc')
-                ->get();
+        if ($user->role !== 'administrador') {
+            // Para los doctores, mostrar todas las citas para que puedan ver la agenda general
+            $appointments = $query->paginate(10);
+        } else {
+            // Para administradores, ordenar primero las citas solicitadas
+            $appointments = $query
+                ->orderByRaw("CASE 
+                    WHEN status = 'Solicitado' THEN 1
+                    WHEN status = 'Agendado' THEN 2
+                    WHEN status = 'Completado' THEN 3
+                    WHEN status = 'Cancelado' THEN 4
+                    ELSE 5 END")
+                ->paginate(10);
         }
         
-        return view('admin.appointments.index', compact('appointments'));
+        return view('admin.appointments.all-appointments', compact('appointments'));
     }
 
     /**

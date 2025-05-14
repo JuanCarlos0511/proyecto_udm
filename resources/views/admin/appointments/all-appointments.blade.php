@@ -31,71 +31,79 @@
         <thead>
             <tr>
                 <th>Paciente</th>
-                <th>Doctor</th>
                 <th>Fecha</th>
                 <th>Hora</th>
                 <th>Estado</th>
-                <th>Servicio</th>
+                <th>Asunto</th>
+                <th>Modalidad</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
+            @foreach($appointments as $appointment)
             <tr>
-                <td>María González</td>
-                <td>Dr. Juan Pérez</td>
-                <td>15/09/2022</td>
-                <td>09:00 AM</td>
-                <td><span class="appointment-status status-completed">Completada</span></td>
-                <td>Consulta General</td>
-                <td><i class="fas fa-ellipsis-h"></i></td>
+                <td>{{ $appointment->user->name }}</td>
+                <td>{{ \Carbon\Carbon::parse($appointment->date)->format('d/m/Y') }}</td>
+                <td>{{ \Carbon\Carbon::parse($appointment->date)->format('h:i A') }}</td>
+                <td>
+                    <span class="appointment-status status-{{ strtolower($appointment->status) }}">
+                        {{ $appointment->status }}
+                    </span>
+                </td>
+                <td>{{ $appointment->subject }}</td>
+                <td>{{ $appointment->modality }}</td>
+                <td class="actions-column">
+                    @if($appointment->status === 'Solicitado')
+                        <form action="{{ route('admin.appointments.update-status', $appointment->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" name="status" value="Agendado" class="btn btn-success btn-sm" title="Aceptar cita">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button type="submit" name="status" value="Cancelado" class="btn btn-danger btn-sm" title="Rechazar cita">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    @endif
+                    <a href="{{ route('admin.appointments.edit', $appointment->id) }}" class="btn btn-primary btn-sm" title="Editar cita">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
             </tr>
+            @endforeach
+
+            @if($appointments->isEmpty())
             <tr>
-                <td>Carlos Rodríguez</td>
-                <td>Dra. María López</td>
-                <td>16/09/2022</td>
-                <td>10:30 AM</td>
-                <td><span class="appointment-status status-pending">Pendiente</span></td>
-                <td>Limpieza Dental</td>
-                <td><i class="fas fa-ellipsis-h"></i></td>
+                <td colspan="7" class="text-center">No hay citas pendientes</td>
             </tr>
-            <tr>
-                <td>Ana Martínez</td>
-                <td>Dr. Carlos Rodríguez</td>
-                <td>17/09/2022</td>
-                <td>11:00 AM</td>
-                <td><span class="appointment-status status-cancelled">Cancelada</span></td>
-                <td>Extracción</td>
-                <td><i class="fas fa-ellipsis-h"></i></td>
-            </tr>
-            <tr>
-                <td>José López</td>
-                <td>Dr. Juan Pérez</td>
-                <td>18/09/2022</td>
-                <td>09:30 AM</td>
-                <td><span class="appointment-status status-completed">Completada</span></td>
-                <td>Consulta General</td>
-                <td><i class="fas fa-ellipsis-h"></i></td>
-            </tr>
-            <tr>
-                <td>Laura Sánchez</td>
-                <td>Dra. María López</td>
-                <td>19/09/2022</td>
-                <td>10:00 AM</td>
-                <td><span class="appointment-status status-pending">Pendiente</span></td>
-                <td>Ortodoncia</td>
-                <td><i class="fas fa-ellipsis-h"></i></td>
-            </tr>
+            @endif
         </tbody>
     </table>
     
     <div class="pagination">
-        <a href="#" class="pagination-item"><i class="fas fa-chevron-left"></i></a>
-        <a href="#" class="pagination-item active">1</a>
-        <a href="#" class="pagination-item">2</a>
-        <a href="#" class="pagination-item">3</a>
-        <span class="pagination-separator">...</span>
-        <a href="#" class="pagination-item">10</a>
-        <a href="#" class="pagination-item"><i class="fas fa-chevron-right"></i></a>
+        @if ($appointments->onFirstPage())
+            <span class="pagination-item disabled"><i class="fas fa-chevron-left"></i></span>
+        @else
+            <a href="{{ $appointments->previousPageUrl() }}" class="pagination-item"><i class="fas fa-chevron-left"></i></a>
+        @endif
+        
+        @for ($i = 1; $i <= $appointments->lastPage(); $i++)
+            @if ($i == $appointments->currentPage())
+                <a href="{{ $appointments->url($i) }}" class="pagination-item active">{{ $i }}</a>
+            @else
+                @if ($i <= 3 || $i > $appointments->lastPage() - 2 || abs($i - $appointments->currentPage()) < 2)
+                    <a href="{{ $appointments->url($i) }}" class="pagination-item">{{ $i }}</a>
+                @elseif (abs($i - $appointments->currentPage()) == 2)
+                    <span class="pagination-separator">...</span>
+                @endif
+            @endif
+        @endfor
+        
+        @if ($appointments->hasMorePages())
+            <a href="{{ $appointments->nextPageUrl() }}" class="pagination-item"><i class="fas fa-chevron-right"></i></a>
+        @else
+            <span class="pagination-item disabled"><i class="fas fa-chevron-right"></i></span>
+        @endif
     </div>
 </div>
 @endsection
