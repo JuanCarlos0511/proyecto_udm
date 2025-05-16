@@ -24,7 +24,7 @@ class AppointmentController extends Controller
         // Si es administrador, mostrar todas las citas
         // Si es doctor, mostrar solo las citas asociadas a pacientes que ha atendido
         if ($user->role === 'administrador') {
-            $appointments = Appointment::with('user')->orderBy('date', 'desc')->get();
+            $appointments = Appointment::with(['user', 'doctor'])->orderBy('date', 'desc')->get();
             $appointments->transform(function ($appointment) {
                 $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
                 return $appointment;
@@ -32,7 +32,7 @@ class AppointmentController extends Controller
         } else { // doctor
             // Para los doctores, podemos filtrar por citas que tengan un subject o diagnosis relacionado con su especialidad
             // O simplemente mostrar todas las citas para que puedan ver la agenda general
-            $appointments = Appointment::with('user')
+            $appointments = Appointment::with(['user', 'doctor'])
                 ->orderBy('date', 'desc')
                 ->get();
             $appointments->transform(function ($appointment) {
@@ -40,8 +40,11 @@ class AppointmentController extends Controller
                 return $appointment;
             });
         }
+
+        // Obtener la lista de doctores para el formulario de edición
+        $doctors = User::where('role', 'doctor')->get();
         
-        return view('admin.appointments.index', compact('appointments'));
+        return view('admin.appointments.all-appointments', compact('appointments', 'doctors'));
     }
 
     /**
@@ -279,5 +282,75 @@ class AppointmentController extends Controller
         return response()->json([
             'appointments' => $appointments
         ]);
+    }
+
+    /**
+     * Accept an appointment.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function accept($id)
+    {
+        try {
+            $appointment = Appointment::findOrFail($id);
+            
+            if (!$appointment->canBeAccepted()) {
+                return response()->json([
+                    'message' => 'Solo se pueden aceptar citas en estado ' . Appointment::STATUS_REQUESTED
+                ], 400);
+            }
+            
+            if ($appointment->accept()) {
+                return response()->json([
+                    'message' => 'Cita aceptada exitosamente',
+                    'appointment' => $appointment
+                ]);
+            } else {
+                return response()->json([
+                    'message' => 'No se pudo aceptar la cita'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al aceptar la cita: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel an appointment.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancel($id)
+    {
+        try {
+            $appointment = Appointment::findOrFail($id);
+            
+            if (!$appointment->canBeCancelled()) {
+                return response()->json([
+                    'message' => 'Solo se pueden cancelar citas en estado ' . 
+                                Appointment::STATUS_REQUESTED . ' o ' . 
+                                Appointment::STATUS_SCHEDULED
+                ], 400);
+            }
+            
+            if ($appointment->cancel()) {
+                return response()->json([
+                    'message' => 'Cita cancelada exitosamente',
+                    'appointment' => $appointment
+                ]);
+            } else {
+                return response()->json([
+                    'message' => 'No se pudo cancelar la cita'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al cancelar la cita: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -183,12 +183,12 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@getDoctorsData')->name('admin.doctors.data');
     
     // Rutas para citas
-    Route::get('/admin/tablero/citas-todas', function() {
-        return view('admin.appointments.all-appointments');
-    })->name('admin.appointment-all-appointments');
+    Route::get('/admin/tablero/citas-todas', 'App\Http\Controllers\Admin\AppointmentController@index')->name('admin.appointments.index');
     
     Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index']);
     Route::get('/admin/citas-data', 'App\Http\Controllers\Admin\AppointmentController@getAppointmentsData')->name('admin.appointments.data');
+    Route::post('/admin/appointments/{id}/accept', 'App\Http\Controllers\Admin\AppointmentController@accept')->name('admin.appointments.accept');
+    Route::post('/admin/appointments/{id}/cancel', 'App\Http\Controllers\Admin\AppointmentController@cancel')->name('admin.appointments.cancel');
     Route::get('/admin/citas-domicilio', 'App\Http\Controllers\Admin\AppointmentController@createHomeAppointment')->name('admin.appointments.home');
     Route::get('/admin/citas-consultorio', 'App\Http\Controllers\Admin\AppointmentController@createClinicAppointment')->name('admin.appointments.clinic');
     
