@@ -325,11 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-}
-
-// Función para actualizar la paginación
-// Función para renderizar las citas
-function renderAppointments() {
+},function renderAppointments() {
     const tableBody = document.querySelector('#appointmentsTable tbody');
     if (!tableBody) return;
 
@@ -381,8 +377,7 @@ function renderAppointments() {
     });
 }
 
-// Función para actualizar la paginación
-function updatePagination() {
+,function updatePagination() {
     const pagination = document.getElementById('appointmentsPagination');
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     

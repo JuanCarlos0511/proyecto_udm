@@ -43,7 +43,8 @@ class Appointment extends Model
         'diagnosis',
         'referred_by',
         'contact_name',
-        'contact_relationship'
+        'contact_relationship',
+        'appointment_group_id'
     ];
 
     /**
@@ -65,11 +66,41 @@ class Appointment extends Model
     }
 
     /**
-     * Get the doctor associated with the appointment.
+     * Esta relación ya no se usa, pues no existe la columna doctor_id en la tabla.
+     * En su lugar, se crean citas separadas para pacientes y doctores y se relacionan
+     * a través del appointment_group_id.
      */
-    public function doctor()
+    // Comentado para evitar errores porque no existe la columna doctor_id
+    // public function doctor()
+    // {
+    //     return $this->belongsTo(User::class, 'doctor_id');
+    // }
+    
+    /**
+     * Obtener el grupo de citas al que pertenece esta cita.
+     */
+    public function appointmentGroup()
     {
-        return $this->belongsTo(User::class, 'doctor_id');
+        return $this->belongsTo(AppointmentGroup::class);
+    }
+    
+    /**
+     * Obtener la cita relacionada (del doctor si esta es del paciente, o del paciente si esta es del doctor).
+     */
+    public function relatedAppointment()
+    {
+        if (!$this->appointment_group_id) {
+            return null;
+        }
+        
+        $currentUserRole = $this->user->role;
+        $targetRole = ($currentUserRole === 'paciente') ? 'doctor' : 'paciente';
+        
+        return Appointment::where('appointment_group_id', $this->appointment_group_id)
+            ->whereHas('user', function($query) use ($targetRole) {
+                $query->where('role', $targetRole);
+            })
+            ->first();
     }
 
     /**

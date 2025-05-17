@@ -7,6 +7,8 @@ use App\Models\Appointment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\TimeHelper;
 
@@ -21,25 +23,24 @@ class AppointmentController extends Controller
     {
         $user = auth()->user();
         
-        // Si es administrador, mostrar todas las citas
-        // Si es doctor, mostrar solo las citas asociadas a pacientes que ha atendido
-        if ($user->role === 'administrador') {
-            $appointments = Appointment::with(['user', 'doctor'])->orderBy('date', 'desc')->get();
-            $appointments->transform(function ($appointment) {
-                $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
-                return $appointment;
-            });
-        } else { // doctor
-            // Para los doctores, podemos filtrar por citas que tengan un subject o diagnosis relacionado con su especialidad
-            // O simplemente mostrar todas las citas para que puedan ver la agenda general
-            $appointments = Appointment::with(['user', 'doctor'])
-                ->orderBy('date', 'desc')
-                ->get();
-            $appointments->transform(function ($appointment) {
-                $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
-                return $appointment;
-            });
-        }
+        Log::info('Consultando citas con usuario: ' . $user->name . ', rol: ' . $user->role);
+        
+        // Obtener solo las citas de los pacientes (no las de los doctores)
+        // Verificamos que los registros pertenezcan a usuarios con role = 'paciente'
+        $appointments = Appointment::with('user')
+            ->whereHas('user', function($query) {
+                $query->where('role', 'paciente');
+            })
+            ->orderBy('date', 'desc')
+            ->get();
+            
+        Log::info('Citas encontradas: ' . $appointments->count());
+        
+        // Transformar los registros para añadir el timeToHuman
+        $appointments->transform(function ($appointment) {
+            $appointment->timeToHuman = TimeHelper::timeToHuman($appointment->date);
+            return $appointment;
+        });
 
         // Obtener la lista de doctores para el formulario de edición
         $doctors = User::where('role', 'doctor')->get();
@@ -350,6 +351,110 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al cancelar la cita: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Update appointment from the appointments view.
+     * This method handles PUT requests to /admin/tablero/citas-todas
+     * Implementa la lógica de negocio donde:
+     * - Cuando se asigna un doctor a una cita sin doctor, se crea un nuevo registro para el doctor
+     * - Cuando se cambia el doctor de una cita, se actualiza el registro existente del doctor
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateFromView(Request $request)
+    {
+        // Iniciar transacción para garantizar consistencia de datos
+        DB::beginTransaction();
+        
+        try {
+            // Obtener el ID de la cita desde la solicitud
+            $appointmentId = $request->input('appointment_id');
+            
+            if (!$appointmentId) {
+                return response()->json([
+                    'message' => 'Se requiere el ID de la cita'
+                ], 400);
+            }
+            
+            // Buscar la cita del paciente
+            $patientAppointment = Appointment::with('user')->findOrFail($appointmentId);
+            
+            // Validar los datos recibidos
+            $validator = Validator::make($request->all(), [
+                'date' => 'required|string',
+                'doctor_id' => 'nullable|exists:users,id',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Error de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
+            // Obtener los IDs relevantes
+            $oldDate = $patientAppointment->date;
+            $selectedDoctorId = $request->doctor_id; // ID del doctor seleccionado en el formulario
+            
+            // Actualizar la fecha de la cita del paciente
+            $patientAppointment->date = $request->date;
+            $patientAppointment->save();
+            
+            // Verificar si hay un doctor asignado en el formulario
+            if ($selectedDoctorId) {
+                // Verificar si ya existe una cita para este doctor en la misma fecha
+                $doctorAppointment = Appointment::where('date', $oldDate)
+                    ->where('user_id', $selectedDoctorId)
+                    ->first();
+                
+                if ($doctorAppointment) {
+                    // Actualizar la fecha de la cita existente del doctor
+                    $doctorAppointment->date = $request->date;
+                    $doctorAppointment->save();
+                    
+                    Log::info('Se actualizó la cita existente del doctor', [
+                        'patient_appointment_id' => $patientAppointment->id,
+                        'doctor_appointment_id' => $doctorAppointment->id,
+                        'doctor_id' => $selectedDoctorId,
+                        'new_date' => $request->date
+                    ]);
+                } else {
+                    // Crear una nueva cita para el doctor
+                    $doctorAppointment = new Appointment();
+                    $doctorAppointment->date = $request->date;
+                    $doctorAppointment->user_id = $selectedDoctorId; // El doctor es el usuario de esta cita
+                    $doctorAppointment->subject = $patientAppointment->subject;
+                    $doctorAppointment->status = $patientAppointment->status;
+                    $doctorAppointment->modality = $patientAppointment->modality;
+                    $doctorAppointment->price = $patientAppointment->price;
+                    $doctorAppointment->save();
+                    
+                    Log::info('Se creó una nueva cita para el doctor', [
+                        'patient_appointment_id' => $patientAppointment->id,
+                        'doctor_appointment_id' => $doctorAppointment->id,
+                        'doctor_id' => $selectedDoctorId
+                    ]);
+                }
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'message' => 'Cita actualizada exitosamente',
+                'appointment' => $patientAppointment
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error al actualizar la cita: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Error al actualizar la cita: ' . $e->getMessage()
             ], 500);
         }
     }

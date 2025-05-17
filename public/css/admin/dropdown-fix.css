@@ -1,0 +1,64 @@
+/* Estilos para los botones de acción en línea */
+.actions-cell {
+    white-space: nowrap;
+    text-align: center;
+}
+
+.action-btn {
+    margin: 0 2px;
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-btn.btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.action-btn.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.action-btn.btn-outline-success {
+    color: #28a745;
+    border-color: #28a745;
+}
+
+/* Estilos para los estados de las citas */
+.appointment-row.editing {
+    background-color: #e9f5ff;
+    border-left: 3px solid #007bff;
+}
+
+.status-agendado {
+    background-color: #e6f7ee;
+    color: #00a389;
+}
+
+.status-solicitado {
+    background-color: #fff4e5;
+    color: #ff9500;
+}
+
+.status-cancelado {
+    background-color: #fee7e7;
+    color: #ff4d4d;
+}
+
+.status-completado {
+    background-color: #e9ecef;
+    color: #495057;
+}

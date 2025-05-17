@@ -184,8 +184,13 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     
     // Rutas para citas
     Route::get('/admin/tablero/citas-todas', 'App\Http\Controllers\Admin\AppointmentController@index')->name('admin.appointments.index');
+    // Ruta PUT para actualizar citas directamente desde la vista
+    Route::put('/admin/tablero/citas-todas', 'App\Http\Controllers\Admin\AppointmentController@updateFromView');
     
-    Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index']);
+    // Define explicit PUT route for appointment updates to bypass any routing issues
+    Route::put('/admin/citas/{id}', 'App\Http\Controllers\Admin\AppointmentController@update')->name('admin.appointments.update');
+    
+    Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index', 'update']);
     Route::get('/admin/citas-data', 'App\Http\Controllers\Admin\AppointmentController@getAppointmentsData')->name('admin.appointments.data');
     Route::post('/admin/appointments/{id}/accept', 'App\Http\Controllers\Admin\AppointmentController@accept')->name('admin.appointments.accept');
     Route::post('/admin/appointments/{id}/cancel', 'App\Http\Controllers\Admin\AppointmentController@cancel')->name('admin.appointments.cancel');
