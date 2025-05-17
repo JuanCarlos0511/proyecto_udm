@@ -49,12 +49,14 @@
                                 <span>Perfil</span>
                             </a>
                         </li>
+                        @if(auth()->user()->role == 'admin')
                         <li class="sidebar-menu-item {{ request()->is('admin/doctores*') ? 'active' : '' }}">
                             <a href="{{ url('admin/doctores') }}">
                                 <i class="fas fa-user-md"></i>
                                 <span>Doctores</span>
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
                 <div class="sidebar-section">
@@ -126,12 +128,6 @@
                 </div>
                 
                 <div class="header-actions">
-                    <div class="header-notifications">
-                        <a href="#" class="notification-icon">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge">3</span>
-                        </a>
-                    </div>
                     
                     <div class="user-profile dropdown">
                         <div class="user-info">

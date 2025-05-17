@@ -25,14 +25,19 @@ class AppointmentController extends Controller
         
         Log::info('Consultando citas con usuario: ' . $user->name . ', rol: ' . $user->role);
         
-        // Obtener solo las citas de los pacientes (no las de los doctores)
-        // Verificamos que los registros pertenezcan a usuarios con role = 'paciente'
-        $appointments = Appointment::with('user')
+        // Consulta base para obtener citas de pacientes
+        $query = Appointment::with('user')
             ->whereHas('user', function($query) {
                 $query->where('role', 'paciente');
             })
-            ->orderBy('date', 'desc')
-            ->get();
+            ->orderBy('date', 'desc');
+            
+        // Si el usuario es un doctor, filtrar solo sus citas asignadas
+        if ($user->role === 'doctor') {
+            $query->where('user_id', $user->id);
+        }
+        
+        $appointments = $query->get();
             
         Log::info('Citas encontradas: ' . $appointments->count());
         
@@ -191,19 +196,17 @@ class AppointmentController extends Controller
     {
         $user = auth()->user();
         
-        // Si es administrador, mostrar todas las citas pasadas
-        // Si es doctor, mostrar todas las citas pasadas (agenda general)
-        if ($user->role === 'administrador') {
-            $appointments = Appointment::with('user')
-                ->where('date', '<', Carbon::today())
-                ->orderBy('date', 'desc')
-                ->get();
-        } else { // doctor
-            $appointments = Appointment::with('user')
-                ->where('date', '<', Carbon::today())
-                ->orderBy('date', 'desc')
-                ->get();
+        // Query base para citas pasadas
+        $query = Appointment::with('user')
+            ->where('date', '<', Carbon::today())
+            ->orderBy('date', 'desc');
+            
+        // Si es doctor, filtrar solo sus propias citas
+        if ($user->role === 'doctor') {
+            $query->where('user_id', $user->id);
         }
+        
+        $appointments = $query->get();
         
         // Agregar el tiempo en formato legible
         $appointments->transform(function ($appointment) {
@@ -221,17 +224,41 @@ class AppointmentController extends Controller
      */
     public function patientsInFollowUp()
     {
-        $patients = User::where('role', 'paciente')
-            ->whereHas('appointments', function ($query) {
-                $query->where('date', '<=', Carbon::now())
-                      ->where('status', 'Completado');
-            })
-            ->with(['appointments' => function ($query) {
-                $query->where('status', 'Completado')
-                      ->orderBy('date', 'desc');
-            }])
-            ->get();
-            
+        $user = auth()->user();
+        
+        if ($user->role === 'doctor') {
+            // Para doctores, buscar pacientes que tengan seguimiento con este doctor
+            $followUpGroups = FollowUp::where('status', 'active')
+                ->byUser($user->id)
+                ->pluck('follow_up_group_id');
+                
+            // Encontrar pacientes que estén en esos grupos de seguimiento
+            $patientFollowUps = FollowUp::whereIn('follow_up_group_id', $followUpGroups)
+                ->byUserRole('paciente')
+                ->with('user')
+                ->get()
+                ->pluck('user_id')
+                ->unique();
+                
+            $patients = User::whereIn('id', $patientFollowUps)->get();
+        } else {
+            // Para administradores, mostrar todos los pacientes en seguimiento
+            $patientFollowUps = FollowUp::where('status', 'active')
+                ->byUserRole('paciente')
+                ->with('user')
+                ->get()
+                ->pluck('user_id')
+                ->unique();
+                
+            $patients = User::whereIn('id', $patientFollowUps)->get();
+        }
+        
+        // Enriquecemos la información con las citas asociadas a estos pacientes
+        $patients->load(['appointments' => function($query) {
+            $query->where('status', 'Completado')
+                  ->orderBy('date', 'desc');
+        }]);
+        
         return view('admin.appointments.patients-followup', compact('patients'));
     }
 
@@ -256,7 +283,7 @@ class AppointmentController extends Controller
         $patients = User::where('role', 'paciente')->where('status', 'active')->get();
         return view('admin.appointments.create-home', compact('patients'));
     }
-
+    
     /**
      * Get appointments data for AJAX requests.
      *
@@ -264,9 +291,18 @@ class AppointmentController extends Controller
      */
     public function getAppointmentsData()
     {
-        $appointments = Appointment::with('user')
-            ->orderBy('date', 'desc')
-            ->get()
+        $user = auth()->user();
+        
+        // Consulta base para citas
+        $query = Appointment::with('user')
+            ->orderBy('date', 'desc');
+            
+        // Si el usuario es un doctor, filtrar solo sus citas
+        if ($user->role === 'doctor') {
+            $query->where('user_id', $user->id);
+        }
+        
+        $appointments = $query->get()
             ->map(function ($appointment) {
                 return [
                     'id' => $appointment->id,

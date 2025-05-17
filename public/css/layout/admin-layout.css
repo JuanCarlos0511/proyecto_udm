@@ -226,6 +226,7 @@ body.admin-page {
 
 .user-info {
     display: flex;
+    align-items: center;
     gap: 10px;
 }
 

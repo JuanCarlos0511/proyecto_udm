@@ -22,11 +22,23 @@ class FollowUpController extends Controller
         $user = Auth::user();
         
         if ($user->role === 'doctor') {
-            $followUps = FollowUp::where('doctor_id', $user->id)->with('patient')->get();
+            // Si es doctor, obtener solo sus seguimientos
+            $followUps = FollowUp::with('user')
+                            ->byUser($user->id)
+                            ->get()
+                            ->groupBy('follow_up_group_id');
         } elseif ($user->role === 'admin') {
-            $followUps = FollowUp::with(['doctor', 'patient'])->get();
+            // Si es admin, obtener todos los seguimientos agrupados por grupo
+            $followUps = FollowUp::with('user')
+                            ->byUserRole('doctor')
+                            ->get()
+                            ->groupBy('follow_up_group_id');
         } else {
-            $followUps = FollowUp::where('patient_id', $user->id)->with('doctor')->get();
+            // Si es paciente, obtener solo sus seguimientos
+            $followUps = FollowUp::with('user')
+                            ->byUser($user->id)
+                            ->get()
+                            ->groupBy('follow_up_group_id');
         }
         
         return view('admin.follow-ups.index', compact('followUps'));
@@ -46,9 +58,16 @@ class FollowUpController extends Controller
                 ->with('error', 'Solo los pacientes pueden acceder a esta sección');
         }
         
-        $followUps = FollowUp::where('patient_id', $user->id)
+        // Obtener todos los grupos de seguimiento donde el paciente es miembro
+        $patientFollowUps = FollowUp::where('user_id', $user->id)
             ->where('status', 'active')
-            ->with('doctor')
+            ->pluck('follow_up_group_id')
+            ->toArray();
+            
+        // Obtener todos los doctores asociados a esos grupos
+        $followUps = FollowUp::whereIn('follow_up_group_id', $patientFollowUps)
+            ->with('user')
+            ->byUserRole('doctor')
             ->get();
             
         return view('follow-ups.my-doctors', compact('followUps'));
@@ -149,10 +168,19 @@ class FollowUpController extends Controller
         }
 
         // Verificar si ya existe un seguimiento activo para este doctor y paciente
-        $existingFollowUp = FollowUp::where('doctor_id', $doctorId)
-            ->where('patient_id', $request->patient_id)
+        // Necesitamos verificar si ambos pertenecen al mismo grupo de seguimiento
+        $doctorGroups = FollowUp::where('user_id', $doctorId)
             ->where('status', 'active')
-            ->first();
+            ->pluck('follow_up_group_id')
+            ->toArray();
+        
+        $existingFollowUp = false;
+        if (!empty($doctorGroups)) {
+            $existingFollowUp = FollowUp::whereIn('follow_up_group_id', $doctorGroups)
+                ->where('user_id', $request->patient_id)
+                ->where('status', 'active')
+                ->exists();
+        }
 
         if ($existingFollowUp) {
             return response()->json([
@@ -160,42 +188,121 @@ class FollowUpController extends Controller
             ], 422);
         }
 
-        // Crear el nuevo seguimiento
-        $followUp = new FollowUp();
-        $followUp->doctor_id = $doctorId;
-        $followUp->patient_id = $request->patient_id;
-        $followUp->notes = $request->notes;
-        $followUp->status = $request->status ?? 'active';
-        $followUp->start_date = $request->start_date;
-        $followUp->end_date = $request->end_date;
-        $followUp->save();
-        
-        // Si se proporcionó una fecha para la próxima cita, crear una cita
-        if ($request->has('next_appointment') && !empty($request->next_appointment)) {
-            try {
-                $appointment = new \App\Models\Appointment();
-                $appointment->patient_id = $request->patient_id;
-                $appointment->doctor_id = $doctorId;
-                $appointment->date = $request->next_appointment;
-                $appointment->time = '09:00:00'; // Hora predeterminada
-                $appointment->modality = 'consultorio';
-                $appointment->status = 'scheduled';
-                $appointment->subject = 'Seguimiento: ' . $request->notes;
-                $appointment->save();
-            } catch (\Exception $e) {
-                // Registrar el error pero continuar
-                \Log::error('Error al crear cita de seguimiento: ' . $e->getMessage());
+        try {
+            // Iniciar una transacción para asegurar que ambos registros se guardan o ninguno
+            DB::beginTransaction();
+            
+            // Generar un nuevo ID de grupo de seguimiento (usando timestamp para garantizar unicidad)
+            $groupId = time() . rand(1000, 9999);
+            
+            // Datos comunes para ambos registros
+            $commonData = [
+                'notes' => $request->notes,
+                'status' => $request->status ?? 'active',
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+            
+            // Crear registro para el doctor
+            $doctorFollowUp = new FollowUp();
+            $doctorFollowUp->follow_up_group_id = $groupId;
+            $doctorFollowUp->user_id = $doctorId;
+            $doctorFollowUp->notes = $commonData['notes'];
+            $doctorFollowUp->status = $commonData['status'];
+            $doctorFollowUp->start_date = $commonData['start_date'];
+            $doctorFollowUp->end_date = $commonData['end_date'];
+            $doctorFollowUp->save();
+            
+            // Crear registro para el paciente
+            $patientFollowUp = new FollowUp();
+            $patientFollowUp->follow_up_group_id = $groupId;
+            $patientFollowUp->user_id = $request->patient_id;
+            $patientFollowUp->notes = $commonData['notes'];
+            $patientFollowUp->status = $commonData['status'];
+            $patientFollowUp->start_date = $commonData['start_date'];
+            $patientFollowUp->end_date = $commonData['end_date'];
+            $patientFollowUp->save();
+            
+            // Si se proporcionó una fecha para la próxima cita, crear una cita
+            if ($request->has('next_appointment') && !empty($request->next_appointment)) {
+                // 1. Primero crear el grupo de citas en la tabla appointment_groups
+                $appointmentGroup = new \App\Models\AppointmentGroup();
+                $appointmentGroup->name = 'Seguimiento de ' . $request->notes;
+                $appointmentGroup->description = 'Creado automáticamente para el seguimiento con ID de grupo: ' . $groupId;
+                $appointmentGroup->save();
+                
+                // Obtener el ID del grupo de citas recién creado
+                $appointmentGroupId = $appointmentGroup->id;
+                
+                // Datos básicos para ambas citas
+                // Combinar la fecha y la hora de la próxima cita
+                $appointmentDate = $request->next_appointment;
+                $appointmentTime = $request->appointment_time ?? '09:00';
+                
+                // Asegurar formato correcto
+                $appointmentDateTime = $appointmentDate . ' ' . $appointmentTime . ':00';
+                
+                $appointmentData = [
+                    'date' => $appointmentDateTime,
+                    'subject' => 'Seguimiento: ' . $request->notes,
+                    'status' => 'Agendado',
+                    'modality' => 'Consultorio',
+                    'appointment_group_id' => $appointmentGroupId,
+                    'price' => 0.00, // Precio estándar o predeterminado
+                ];
+                
+                // 2. Crear cita para el paciente
+                $patientAppointment = new \App\Models\Appointment();
+                $patientAppointment->user_id = $request->patient_id;
+                $patientAppointment->date = $appointmentData['date'];
+                $patientAppointment->subject = $appointmentData['subject'];
+                $patientAppointment->status = $appointmentData['status'];
+                $patientAppointment->modality = $appointmentData['modality'];
+                $patientAppointment->appointment_group_id = $appointmentData['appointment_group_id'];
+                $patientAppointment->price = $appointmentData['price'];
+                $patientAppointment->save();
+                
+                // 3. Crear cita para el doctor
+                $doctorAppointment = new \App\Models\Appointment();
+                $doctorAppointment->user_id = $doctorId;
+                $doctorAppointment->date = $appointmentData['date'];
+                $doctorAppointment->subject = $appointmentData['subject'];
+                $doctorAppointment->status = $appointmentData['status'];
+                $doctorAppointment->modality = $appointmentData['modality'];
+                $doctorAppointment->appointment_group_id = $appointmentData['appointment_group_id'];
+                $doctorAppointment->price = $appointmentData['price'];
+                $doctorAppointment->save();
             }
+            
+            // Confirmar la transacción
+            DB::commit();
+            
+            // Cargar los datos de usuarios relacionados
+            $doctorFollowUp->load('user');
+            $patientUser = User::find($request->patient_id);
+            $doctorUser = User::find($doctorId);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Seguimiento creado correctamente',
+                'followUp' => $doctorFollowUp,
+                'groupId' => $groupId,
+                'patient' => $patientUser->only(['id', 'name', 'email']),
+                'doctor' => $doctorUser->only(['id', 'name', 'email'])
+            ]);
+            
+        } catch (\Exception $e) {
+            // Si algo falla, revertir la transacción
+            DB::rollBack();
+            
+            \Log::error('Error al crear seguimiento: ' . $e->getMessage());
+            
+            return response()->json([
+                'error' => 'Error al crear el seguimiento: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Seguimiento creado correctamente',
-            'followUp' => $followUp->load(['patient', 'doctor']),
-            'admin_id' => $user->id,
-            'doctor_id' => $doctorId,
-            'patient_id' => $request->patient_id
-        ]);
     }
 
     /**
@@ -272,28 +379,54 @@ class FollowUpController extends Controller
     /**
      * Mostrar el formulario para editar un seguimiento
      */
-    public function edit($id)
+    public function edit($groupId)
     {
-        $followUp = FollowUp::findOrFail($id);
-
-        // Verificar si el usuario es el doctor que creó el seguimiento
-        if (Auth::user()->role !== 'doctor' || $followUp->doctor_id !== Auth::id()) {
-            return redirect()->back()->with('error', 'No tienes permiso para editar este seguimiento');
+        $user = Auth::user();
+        
+        // Buscar el grupo de seguimiento
+        $followUps = FollowUp::where('follow_up_group_id', $groupId)->get();
+        
+        if ($followUps->isEmpty()) {
+            return redirect()->back()->with('error', 'El grupo de seguimiento no existe');
         }
+        
+        // Para doctores, verificar si es miembro del grupo
+        if ($user->role === 'doctor') {
+            $isDoctor = $followUps->contains('user_id', $user->id);
+            
+            if (!$isDoctor && $user->role !== 'admin') {
+                return redirect()->back()->with('error', 'No tienes permiso para editar este seguimiento');
+            }
+        }
+        
+        // Obtener el primer seguimiento como principal para mostrar datos generales
+        $followUp = $followUps->first();
+        $groupMembers = $followUps->pluck('user_id')->toArray();
 
-        return view('admin.follow-ups.edit', compact('followUp'));
+        return view('admin.follow-ups.edit', compact('followUp', 'followUps', 'groupMembers'));
     }
 
     /**
      * Actualizar un seguimiento
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $groupId)
     {
-        $followUp = FollowUp::findOrFail($id);
-
-        // Verificar si el usuario es el doctor que creó el seguimiento
-        if (Auth::user()->role !== 'doctor' || $followUp->doctor_id !== Auth::id()) {
-            return response()->json(['error' => 'Acceso denegado'], 403);
+        $user = Auth::user();
+        
+        // Obtener todos los seguimientos del grupo
+        $followUps = FollowUp::where('follow_up_group_id', $groupId)->get();
+        
+        if ($followUps->isEmpty()) {
+            return response()->json(['error' => 'Grupo de seguimiento no encontrado'], 404);
+        }
+        
+        // Para doctores, verificar si es miembro del grupo
+        if ($user->role === 'doctor') {
+            $isDoctor = $followUps->contains('user_id', $user->id);
+            
+            if (!$isDoctor && $user->role !== 'admin') {
+                return response()->json(['error' => 'Acceso denegado'], 403);
+            }
         }
 
         $validator = Validator::make($request->all(), [
@@ -305,36 +438,54 @@ class FollowUpController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+        
+        // Actualizar todos los seguimientos del grupo
+        foreach ($followUps as $followUp) {
+            $followUp->notes = $request->notes;
+            $followUp->status = $request->status;
+            $followUp->end_date = $request->end_date;
+            $followUp->save();
+        }
 
-        $followUp->notes = $request->notes;
-        $followUp->status = $request->status;
-        $followUp->end_date = $request->end_date;
-        $followUp->save();
+        // Obtener el primer elemento para la respuesta
+        $mainFollowUp = $followUps->first()->load('user');
 
         return response()->json([
             'success' => true,
             'message' => 'Seguimiento actualizado correctamente',
-            'followUp' => $followUp->load('patient')
+            'followUp' => $mainFollowUp
         ]);
     }
 
     /**
      * Eliminar un seguimiento
      */
-    public function destroy($id)
+    public function destroy($groupId)
     {
-        $followUp = FollowUp::findOrFail($id);
-
-        // Verificar si el usuario es el doctor que creó el seguimiento
-        if (Auth::user()->role !== 'doctor' || $followUp->doctor_id !== Auth::id()) {
-            return response()->json(['error' => 'Acceso denegado'], 403);
+        $user = Auth::user();
+        
+        // Obtener todos los seguimientos del grupo
+        $followUps = FollowUp::where('follow_up_group_id', $groupId)->get();
+        
+        if ($followUps->isEmpty()) {
+            return response()->json(['error' => 'Grupo de seguimiento no encontrado'], 404);
+        }
+        
+        // Para doctores, verificar si es miembro del grupo
+        if ($user->role === 'doctor') {
+            $isDoctor = $followUps->contains('user_id', $user->id);
+            
+            if (!$isDoctor && $user->role !== 'admin') {
+                return response()->json(['error' => 'Acceso denegado'], 403);
+            }
         }
 
-        $followUp->delete();
+        // Eliminar todos los seguimientos del grupo
+        FollowUp::where('follow_up_group_id', $groupId)->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Seguimiento eliminado correctamente'
+            'message' => 'Grupo de seguimiento eliminado correctamente'
         ]);
     }
 
@@ -343,18 +494,28 @@ class FollowUpController extends Controller
      */
     public function getFollowUpsForDoctor()
     {
+        $user = Auth::user();
+        
         // Verificar si el usuario es un doctor
-        if (Auth::user()->role !== 'doctor') {
+        if ($user->role !== 'doctor') {
             return response()->json(['error' => 'Acceso denegado'], 403);
         }
 
-        $followUps = FollowUp::with('patient')
-            ->byDoctor(Auth::id())
+        // Obtener los grupos de seguimiento donde el doctor es miembro
+        $followUpGroups = FollowUp::where('user_id', $user->id)
+            ->pluck('follow_up_group_id')
+            ->toArray();
+            
+        // Obtener información de los pacientes asociados a estos grupos
+        $patientFollowUps = FollowUp::whereIn('follow_up_group_id', $followUpGroups)
+            ->with('user')
+            ->byUserRole('paciente')
             ->orderBy('status')
             ->orderBy('start_date', 'desc')
-            ->get();
+            ->get()
+            ->groupBy('follow_up_group_id');
 
-        return response()->json(['data' => $followUps]);
+        return response()->json(['data' => $patientFollowUps]);
     }
 
     /**
@@ -362,13 +523,23 @@ class FollowUpController extends Controller
      */
     public function getMyDoctors()
     {
-        $followUps = FollowUp::with('doctor')
-            ->byPatient(Auth::id())
+        $user = Auth::user();
+        
+        // Obtener los grupos de seguimiento donde el paciente es miembro
+        $followUpGroups = FollowUp::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->pluck('follow_up_group_id')
+            ->toArray();
+            
+        // Obtener información de los doctores asociados a estos grupos
+        $doctorFollowUps = FollowUp::whereIn('follow_up_group_id', $followUpGroups)
+            ->with('user')
+            ->byUserRole('doctor')
             ->active()
             ->orderBy('start_date', 'desc')
             ->get();
 
-        return response()->json(['data' => $followUps]);
+        return response()->json(['data' => $doctorFollowUps]);
     }
 
     /**
@@ -376,14 +547,25 @@ class FollowUpController extends Controller
      */
     public function getAppointmentsWithFollowUpDoctors()
     {
-        // Obtener los IDs de los doctores que siguen al paciente
-        $doctorIds = FollowUp::where('patient_id', Auth::id())
+        $user = Auth::user();
+        
+        // Obtener los grupos de seguimiento donde el paciente es miembro
+        $followUpGroups = FollowUp::where('user_id', $user->id)
             ->where('status', 'active')
-            ->pluck('doctor_id')
+            ->pluck('follow_up_group_id')
+            ->toArray();
+            
+        // Obtener los IDs de los doctores asociados a estos grupos
+        $doctorIds = FollowUp::whereIn('follow_up_group_id', $followUpGroups)
+            ->where('status', 'active')
+            ->byUserRole('doctor')
+            ->join('users', 'users.id', '=', 'follow_ups.user_id')
+            ->pluck('users.id')
+            ->unique()
             ->toArray();
 
         // Obtener las citas con esos doctores
-        $appointments = Auth::user()->appointments()
+        $appointments = $user->appointments()
             ->whereIn('doctor_id', $doctorIds)
             ->with('doctor')
             ->orderBy('date', 'desc')

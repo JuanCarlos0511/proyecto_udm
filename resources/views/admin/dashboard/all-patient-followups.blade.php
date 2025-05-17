@@ -190,12 +190,19 @@
                     
                     <div class="form-group">
                         <label for="doctor" class="form-label required-field">Doctor</label>
-                        <select id="doctor" name="doctor_id" class="form-select" required>
-                            <option value="">Seleccionar doctor</option>
-                            @foreach(\App\Models\User::where('role', 'doctor')->get() as $doctor)
-                                <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
-                            @endforeach
-                        </select>
+                        @if(Auth::user()->role === 'doctor')
+                            <!-- Si es un doctor, el campo se bloquea con su propia información -->
+                            <input type="text" class="form-control" value="{{ Auth::user()->name }}" readonly>
+                            <input type="hidden" id="doctor" name="doctor_id" value="{{ Auth::user()->id }}">
+                        @else
+                            <!-- Si es un administrador, puede seleccionar cualquier doctor -->
+                            <select id="doctor" name="doctor_id" class="form-select" required>
+                                <option value="">Seleccionar doctor</option>
+                                @foreach(\App\Models\User::where('role', 'doctor')->get() as $doctor)
+                                    <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                     </div>
                     
                     <div class="form-group">
@@ -211,8 +218,20 @@
                     
                     <div class="form-group">
                         <label for="nextAppointment" class="form-label required-field">Fecha de Próxima Cita</label>
-                        <input type="date" id="nextAppointment" name="next_appointment" class="form-control" required>
+                        <div class="appointment-datetime-container">
+                            <input type="date" id="nextAppointment" name="next_appointment" class="form-control" required>
+                            <input type="time" id="appointmentTime" name="appointment_time" class="form-control" value="09:00" required>
+                        </div>
                     </div>
+                    <style>
+                        .appointment-datetime-container {
+                            display: flex;
+                            gap: 10px;
+                        }
+                        .appointment-datetime-container input {
+                            flex: 1;
+                        }
+                    </style>
                     
                     <input type="hidden" name="start_date" id="startDate" value="{{ date('Y-m-d') }}">
                     <input type="hidden" name="status" value="active">
@@ -245,39 +264,95 @@
             <tbody>
                 @foreach($followUps as $followUp)
                     @php
-                        // Buscar la próxima cita para este paciente y doctor
-                        $key = $followUp->patient_id . '-' . $followUp->doctor_id;
-                        $nextAppointment = isset($appointments[$key]) && count($appointments[$key]) > 0 ? $appointments[$key]->first() : null;
+                        // Variable para almacenar la próxima cita si existe
+                        $nextAppointment = null;
                     @endphp
                     <tr>
                         <td>
                             <div class="doctor-info">
-                                <div class="doctor-avatar">
-                                    @if($followUp->doctor->photo_path)
-                                        <img src="{{ asset($followUp->doctor->photo_path) }}" alt="{{ $followUp->doctor->name }}">
-                                    @else
-                                        <img src="{{ asset('assets/default-avatar.png') }}" alt="{{ $followUp->doctor->name }}">
-                                    @endif
-                                </div>
-                                <span>{{ $followUp->doctor->name }}</span>
+                                    @php
+                                        // Obtener al doctor del grupo de seguimiento
+                                        $doctorFollowUp = $followUp->user->role === 'doctor' ? $followUp : 
+                                            $followUp->followUpGroupMembers()->byUserRole('doctor')->first();
+                                        $doctor = $doctorFollowUp ? $doctorFollowUp->user : null;
+                                    @endphp
+                                    <span>{{ $doctor ? $doctor->name : 'Sin asignar' }}</span>
                             </div>
                         </td>
                         <td>
                             <div class="patient-info">
-                                <div class="patient-avatar">
-                                    @if($followUp->patient->photo_path)
-                                        <img src="{{ asset($followUp->patient->photo_path) }}" alt="{{ $followUp->patient->name }}">
-                                    @else
-                                        <img src="{{ asset('assets/default-avatar.png') }}" alt="{{ $followUp->patient->name }}">
-                                    @endif
-                                </div>
-                                <span>{{ $followUp->patient->name }}</span>
+                                    @php
+                                        // Obtener al paciente del grupo de seguimiento
+                                        $patientFollowUp = $followUp->user->role === 'paciente' ? $followUp : 
+                                            $followUp->followUpGroupMembers()->byUserRole('paciente')->first();
+                                        $patient = $patientFollowUp ? $patientFollowUp->user : null;
+                                    @endphp
+                                <span>{{ $patient ? $patient->name : 'Sin asignar' }}</span>
                             </div>
                         </td>
                         <td class="treatment-cell">{{ $followUp->notes }}</td>
                         <td>
-                            @if($followUp->end_date)
-                                <span class="next-appointment">{{ $followUp->end_date->format('d/m/Y') }}</span>
+                            @php
+                                // Identificar el paciente asociado al seguimiento
+                                $patientUser = null;
+                                
+                                // Si este followUp pertenece a un paciente directamente
+                                if ($followUp->user->role === 'paciente') {
+                                    $patientUser = $followUp->user;
+                                } else {
+                                    // Si este followUp pertenece a un doctor, buscar el registro del paciente
+                                    $patientFollowUp = \App\Models\FollowUp::where('follow_up_group_id', $followUp->follow_up_group_id)
+                                        ->whereHas('user', function($q) {
+                                            $q->where('role', 'paciente');
+                                        })
+                                        ->first();
+                                    
+                                    if ($patientFollowUp) {
+                                        $patientUser = $patientFollowUp->user;
+                                    }
+                                }
+                                
+                                // Obtener la cita para este paciente específico
+                                $appointmentRow = null;
+                                
+                                if ($patientUser) {
+                                    $appointmentRow = \Illuminate\Support\Facades\DB::table('appointments')
+                                        ->where('user_id', $patientUser->id)
+                                        ->where('subject', 'like', "%Seguimiento: {$followUp->notes}%")
+                                        ->where('status', '!=', 'Cancelado')
+                                        ->orderBy('date', 'asc')
+                                        ->first();
+                                }
+                                    
+                                $dateFormatted = null;
+                                $timeFormatted = null;
+                                
+                                if ($appointmentRow && !empty($appointmentRow->date)) {
+                                    // Separar la fecha y hora manualmente para evitar problemas de formato
+                                    $dateParts = explode(' ', $appointmentRow->date); // Separar fecha y hora
+                                    if (count($dateParts) >= 2) {
+                                        $datePart = $dateParts[0]; // YYYY-MM-DD
+                                        $timePart = $dateParts[1]; // HH:MM:SS
+                                        
+                                        // Convertir formato de fecha
+                                        $dateElements = explode('-', $datePart);
+                                        if (count($dateElements) === 3) {
+                                            $dateFormatted = $dateElements[2] . '/' . $dateElements[1] . '/' . $dateElements[0];
+                                        }
+                                        
+                                        // Convertir formato de hora (quitar segundos)
+                                        $timeElements = explode(':', $timePart);
+                                        if (count($timeElements) >= 2) {
+                                            $timeFormatted = $timeElements[0] . ':' . $timeElements[1];
+                                        }
+                                    }
+                                }
+                            @endphp
+                            
+                            @if($dateFormatted && $timeFormatted)
+                                <span class="next-appointment">
+                                    {{ $dateFormatted }} a las {{ $timeFormatted }}
+                                </span>
                             @else
                                 <span class="no-appointment">Sin fecha definida</span>
                             @endif
@@ -293,25 +368,94 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="{{ route('follow-ups.edit', $followUp->id) }}" class="action-btn" title="Editar">
+                                @php
+                                    // Usamos el follow_up_group_id como identificador para las rutas
+                                    $followUpGroupId = $followUp->follow_up_group_id;
+                                @endphp
+                                <button class="action-btn edit-btn" title="Editar" onclick="toggleFollowUpDetails('{{ $followUpGroupId }}')">
                                     <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{{ route('follow-ups.show', $followUp->id) }}" class="action-btn" title="Ver detalles">
+                                </button>
+                                <a href="{{ route('follow-ups.show', ['seguimiento' => $followUpGroupId]) }}" class="action-btn" title="Ver detalles">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <form action="{{ route('follow-ups.destroy', $followUp->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="action-btn" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este seguimiento?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                <button class="action-btn delete-btn" title="Eliminar" onclick="deleteFollowUp('{{ $followUpGroupId }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+        
+        <!-- Filas expandibles para edición (inicialmente ocultas) -->
+        @foreach($followUps as $followUp)
+        <div class="followup-details" id="details-{{ $followUp->follow_up_group_id }}" style="display: none;">
+            <div class="edit-container">
+                <form class="followup-edit-form" id="form-{{ $followUp->follow_up_group_id }}" method="POST" action="{{ route('follow-ups.update', ['seguimiento' => $followUp->follow_up_group_id]) }}">
+                    @csrf
+                    @method('PUT')
+                    <div class="form-header">
+                        <h3>Editar Seguimiento</h3>
+                        <button type="button" class="close-btn" onclick="toggleFollowUpDetails('{{ $followUp->follow_up_group_id }}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="edit-body">
+                        <div class="form-section">
+                            <h4 class="section-title">Información Principal</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="status-{{ $followUp->follow_up_group_id }}">Estado</label>
+                                    <div class="select-wrapper">
+                                        <select class="form-control" id="status-{{ $followUp->follow_up_group_id }}" name="status">
+                                            <option value="active" {{ $followUp->status === 'active' ? 'selected' : '' }}>Activo</option>
+                                            <option value="inactive" {{ $followUp->status === 'inactive' ? 'selected' : '' }}>Inactivo</option>
+                                            <option value="completed" {{ $followUp->status === 'completed' ? 'selected' : '' }}>Completado</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="notes-{{ $followUp->follow_up_group_id }}">Tratamiento</label>
+                                    <div class="select-wrapper">
+                                        <select class="form-control" id="notes-{{ $followUp->follow_up_group_id }}" name="notes">
+                                            <option value="" disabled {{ $followUp->notes === null ? 'selected' : '' }}>Seleccione un tratamiento</option>
+                                            <option value="Electroterapia" {{ $followUp->notes === 'Electroterapia' ? 'selected' : '' }}>Electroterapia</option>
+                                            <option value="Hidroterapia" {{ $followUp->notes === 'Hidroterapia' ? 'selected' : '' }}>Hidroterapia</option>
+                                            <option value="Mecanoterapia" {{ $followUp->notes === 'Mecanoterapia' ? 'selected' : '' }}>Mecanoterapia</option>
+                                            <option value="Atención Integral" {{ $followUp->notes === 'Atención Integral' ? 'selected' : '' }}>Atención Integral</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="start_date-{{ $followUp->follow_up_group_id }}">Fecha de inicio</label>
+                                    <input type="date" class="form-control" id="start_date-{{ $followUp->follow_up_group_id }}" name="start_date" value="{{ \Carbon\Carbon::parse($followUp->start_date)->format('Y-m-d') }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="end_date-{{ $followUp->follow_up_group_id }}">Fecha final</label>
+                                    <input type="date" class="form-control" id="end_date-{{ $followUp->follow_up_group_id }}" name="end_date" value="{{ $followUp->end_date ? \Carbon\Carbon::parse($followUp->end_date)->format('Y-m-d') : '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <div class="primary-actions">
+                            <button type="button" class="btn btn-secondary" onclick="toggleFollowUpDetails('{{ $followUp->follow_up_group_id }}')">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="updateFollowUp('{{ $followUp->follow_up_group_id }}')">
+                                <i class="fas fa-save"></i> Guardar cambios
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @endforeach
     @else
         <div class="empty-state">
             <i class="fas fa-user-md"></i>
@@ -325,4 +469,5 @@
 
 @section('scripts')
 <script src="{{ asset('js/admin/patient-followup.js') }}"></script>
+<script src="{{ asset('js/admin/followups.js') }}"></script>
 @endsection

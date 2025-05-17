@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('follow_ups', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('doctor_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('patient_id')->constrained('users')->onDelete('cascade');
+            $table->unsignedBigInteger('follow_up_group_id');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->text('notes')->nullable();
             $table->enum('status', ['active', 'inactive', 'completed'])->default('active');
             $table->date('start_date');
@@ -22,11 +21,12 @@ return new class extends Migration
             $table->timestamps();
             
             // Índices para mejorar el rendimiento de las consultas
-            $table->index(['doctor_id', 'patient_id']);
+            $table->index('follow_up_group_id');
+            $table->index('user_id');
             $table->index('status');
             
-            // Aseguramos que no haya duplicados
-            $table->unique(['doctor_id', 'patient_id']);
+            // Clave primaria compuesta
+            $table->primary(['follow_up_group_id', 'user_id']);
         });
     }
 

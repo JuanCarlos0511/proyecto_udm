@@ -264,7 +264,7 @@
         <!-- Sistema de paginación funcional -->
         <div class="pagination-container">
             <div class="pagination-info">
-                Mostrando <span id="showing-from">1</span> a <span id="showing-to">{{ count($appointments) }}</span> de <span id="total-items">{{ count($appointments) }}</span> citas
+                Mostrando <span id="showing-from">1</span> a <span id="showing-to">{{ min(7, count($appointments)) }}</span> de <span id="total-items">{{ count($appointments) }}</span> citas
             </div>
             <div class="pagination" id="pagination-container">
                 <!-- La paginación se maneja con JavaScript -->
@@ -278,4 +278,5 @@
 
 @section('scripts')
     <script src="{{ asset('js/admin/appointments.js') }}"></script>
+    <script src="{{ asset('js/admin/appointments-pagination.js') }}"></script>
 @endsection

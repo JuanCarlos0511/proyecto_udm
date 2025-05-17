@@ -35,12 +35,21 @@ Route::post('/logout', 'App\Http\Controllers\Auth\LogoutController@logout')->nam
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
-// Rutas protegidas - requieren autenticación
-Route::middleware([CheckAuthenticated::class])->group(function () {
+// Rutas protegidas por autenticación
+Route::middleware(['auth'])->group(function () {
     // Rutas de perfil
     Route::get('/perfil', [ProfileController::class, 'show'])->name('profile');
     Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/perfil/photo', [ProfileController::class, 'deletePhoto'])->name('profile.delete-photo');
+    
+    // Rutas para pacientes
+    Route::get('/citas', [AppointmentController::class, 'index'])->name('user.appointments');
+    Route::get('/citas/historial', [AppointmentController::class, 'history'])->name('user.appointment.history');
+    Route::post('/citas/cancelar/{id}', [AppointmentController::class, 'cancel'])->name('user.appointment.cancel');
+    Route::post('/citas', [AppointmentController::class, 'store'])->name('user.appointment.store');
+    
+    // Seguimientos para pacientes
+    Route::get('/mis-seguimientos', [\App\Http\Controllers\Public\PatientFollowUpController::class, 'index'])->name('patient.followups');
     
     Route::get('/settings', function () {
         return view('settings');
@@ -199,10 +208,22 @@ Route::middleware([CheckAuthenticated::class])->group(function () {
     
     // Rutas para pacientes en seguimiento
     Route::get('admin/tablero/seguimiento-todos', function() {
-        // Obtener todos los seguimientos con relaciones cargadas
-        $followUps = \App\Models\FollowUp::with(['doctor', 'patient'])
-            ->active()
-            ->get();
+        $user = auth()->user();
+        $followUps = [];
+        
+        if ($user->role === 'doctor') {
+            // Para doctores, mostrar solo sus propios seguimientos
+            $followUps = \App\Models\FollowUp::with('user')
+                ->active()
+                ->byUser($user->id)
+                ->get();
+        } else {
+            // Para administradores, mostrar todos los seguimientos donde el usuario es doctor
+            $followUps = \App\Models\FollowUp::with('user')
+                ->active()
+                ->byUserRole('doctor')
+                ->get();
+        }
             
         return view('admin.dashboard.all-patient-followups', compact('followUps'));
     })->name('admin.all-patient-followups');

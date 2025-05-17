@@ -23,13 +23,27 @@ class FollowUp extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'doctor_id',
-        'patient_id',
+        'follow_up_group_id',
+        'user_id',
         'notes',
         'status',
         'start_date',
         'end_date',
     ];
+    
+    /**
+     * Indicar que la tabla no tiene una clave primaria autoincremental
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+    
+    /**
+     * La clave primaria compuesta del modelo.
+     *
+     * @var array<int, string>
+     */
+    protected $primaryKey = ['follow_up_group_id', 'user_id'];
 
     /**
      * Los atributos que deben ser convertidos a tipos nativos.
@@ -42,19 +56,23 @@ class FollowUp extends Model
     ];
 
     /**
-     * Obtiene el doctor asociado al seguimiento.
+     * Obtiene el usuario asociado al seguimiento.
      */
-    public function doctor(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'doctor_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
-
+    
     /**
-     * Obtiene el paciente asociado al seguimiento.
+     * Obtiene otros usuarios en el mismo grupo de seguimiento.
+     * 
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function patient(): BelongsTo
+    public function followUpGroupMembers()
     {
-        return $this->belongsTo(User::class, 'patient_id');
+        return FollowUp::where('follow_up_group_id', $this->follow_up_group_id)
+            ->where('user_id', '!=', $this->user_id)
+            ->with('user');
     }
 
     /**
@@ -66,18 +84,28 @@ class FollowUp extends Model
     }
 
     /**
-     * Scope para filtrar por doctor.
+     * Scope para filtrar por usuario (doctor o paciente).
      */
-    public function scopeByDoctor($query, $doctorId)
+    public function scopeByUser($query, $userId)
     {
-        return $query->where('doctor_id', $doctorId);
+        return $query->where('user_id', $userId);
     }
-
+    
     /**
-     * Scope para filtrar por paciente.
+     * Scope para filtrar por grupo de seguimiento.
      */
-    public function scopeByPatient($query, $patientId)
+    public function scopeByGroup($query, $groupId)
     {
-        return $query->where('patient_id', $patientId);
+        return $query->where('follow_up_group_id', $groupId);
+    }
+    
+    /**
+     * Scope para filtrar seguimientos donde el usuario tiene rol específico.
+     */
+    public function scopeByUserRole($query, $role)
+    {
+        return $query->whereHas('user', function($q) use ($role) {
+            $q->where('role', $role);
+        });
     }
 }
