@@ -177,7 +177,7 @@ Route::middleware(['auth'])->group(function () {
         return view('admin.billing.generate-bills');
     })->name('admin.bills.generate');
     
-    Route::post('/admin/informacion-facturar', 'App\Http\Controllers\Admin\BillController@store')->name('admin.bills.store');
+    Route::post('/admin/bills', 'App\Http\Controllers\Admin\BillingController@store')->name('admin.bills.store');
     Route::get('/admin/facturas', function() {
         return view('admin.bills.bills-list');
     })->name('admin.bills.index');

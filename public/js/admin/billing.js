@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Enviar los datos al servidor mediante fetch API
-        fetch('/admin/informacion-facturar', {
+        fetch('/admin/bills', {
             method: 'POST',
             body: formData
         })
