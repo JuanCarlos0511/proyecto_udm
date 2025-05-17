@@ -1,6 +1,264 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar los elementos interactivos
+    initializeElements();
+});
+
+/**
+ * Inicializa todos los elementos interactivos de la página
+ */
+function initializeElements() {
+    // Inicializar botones de filtro por estado
+    initializeFilterButtons();
+    
+    // Inicializar el modal (si Bootstrap está disponible)
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        // Si usamos Bootstrap para los modales
+        const appointmentModal = document.getElementById('startAppointmentModal');
+        if (appointmentModal) {
+            startAppointmentModalInstance = new bootstrap.Modal(appointmentModal);
+        }
+    }
+}
+
+/**
+ * Inicializa los botones de filtro por estado
+ */
+function initializeFilterButtons() {
+    const filterButtons = document.querySelectorAll('.btn-filter');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remover clase active de todos los botones
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Añadir clase active al botón clickeado
+            this.classList.add('active');
+            
+            // Aplicar filtro
+            const status = this.getAttribute('data-status');
+            filterAppointmentsByStatus(status);
+        });
+    });
+}
+
+/**
+ * Filtra las citas por estado
+ */
+function filterAppointmentsByStatus(status) {
+    const rows = document.querySelectorAll('.appointment-row');
+    
+    rows.forEach(row => {
+        const statusElement = row.querySelector('.appointment-status');
+        if (!statusElement) return;
+        
+        const rowStatus = statusElement.textContent.trim();
+        
+        if (status === 'all' || rowStatus.includes(status)) {
+            row.style.display = '';
+            
+            // Si la fila tiene detalles expandidos, también mostrarlos
+            const rowId = row.getAttribute('data-id');
+            if (rowId) {
+                const detailsRow = document.getElementById('details-' + rowId);
+                if (detailsRow && detailsRow.style.display !== 'none') {
+                    detailsRow.style.display = '';
+                }
+            }
+        } else {
+            row.style.display = 'none';
+            
+            // Ocultar también los detalles expandidos
+            const rowId = row.getAttribute('data-id');
+            if (rowId) {
+                const detailsRow = document.getElementById('details-' + rowId);
+                if (detailsRow) {
+                    detailsRow.style.display = 'none';
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Alternar la visibilidad de los detalles de la cita
+ */
+function toggleAppointmentDetails(appointmentId) {
+    const detailsRow = document.getElementById('details-' + appointmentId);
+    if (detailsRow) {
+        detailsRow.style.display = detailsRow.style.display === 'none' ? '' : 'none';
+    }
+}
+
+/**
+ * Aceptar una cita (cambiar su estado a "Agendado")
+ */
+function acceptAppointment(appointmentId) {
+    if (!confirm('¿Desea aceptar esta cita?')) return;
+    
+    // Obtener el token CSRF
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch(`/admin/citas/${appointmentId}/accept`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al aceptar la cita');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Mostrar mensaje de éxito
+        alert('Cita aceptada correctamente');
+        
+        // Recargar la página para reflejar los cambios
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al aceptar la cita: ' + error.message);
+    });
+}
+
+/**
+ * Mostrar el modal para iniciar una cita
+ */
+function showStartAppointmentModal(appointmentId) {
+    // Recuperar datos de la cita
+    fetch(`/admin/citas/${appointmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            // Rellenar los datos del paciente en el modal
+            document.getElementById('patientName').textContent = data.appointment.user.name;
+            document.getElementById('patientEmail').textContent = data.appointment.user.email;
+            document.getElementById('patientPhone').textContent = data.appointment.user.phoneNumber || 'No disponible';
+            document.getElementById('patientAge').textContent = data.appointment.user.age + ' años';
+            document.getElementById('patientAddress').textContent = data.appointment.user.adress || 'No disponible';
+            
+            if (data.appointment.user.photo_path) {
+                document.getElementById('patientAvatar').src = data.appointment.user.photo_path;
+            }
+            
+            // Establecer el ID de la cita en el formulario
+            document.getElementById('appointmentId').value = appointmentId;
+            
+            // Establecer el precio si existe
+            if (data.appointment.price) {
+                document.getElementById('appointmentTotal').value = data.appointment.price;
+            }
+            
+            // Mostrar el modal
+            const modal = document.getElementById('startAppointmentModal');
+            modal.style.display = 'block';
+            // Ajustar estilo para que parezca un modal
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
+            
+            // Agregar backdrop si no existe
+            if (!document.querySelector('.modal-backdrop')) {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos de la cita');
+        });
+}
+
+/**
+ * Cerrar el modal de iniciar cita
+ */
+function closeStartAppointmentModal() {
+    const modal = document.getElementById('startAppointmentModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    
+    // Eliminar backdrop
+    const backdrop = document.querySelector('.modal-backdrop');
+    if (backdrop) {
+        backdrop.remove();
+    }
+}
+
+/**
+ * Completar una cita con los datos del formulario
+ */
+function completeAppointment() {
+    const appointmentId = document.getElementById('appointmentId').value;
+    const notes = document.getElementById('appointmentNotes').value;
+    const price = document.getElementById('appointmentTotal').value;
+    
+    if (!price || price <= 0) {
+        alert('Por favor, ingrese un precio válido');
+        return;
+    }
+    
+    // Obtener el token CSRF
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Enviar la solicitud para completar la cita
+    fetch(`/admin/citas/${appointmentId}/complete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+            notes: notes,
+            price: price
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al completar la cita');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Mostrar mensaje de éxito
+        alert('Cita completada correctamente');
+        
+        // Cerrar el modal
+        closeStartAppointmentModal();
+        
+        // Recargar la página para reflejar los cambios
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al completar la cita: ' + error.message);
+    });
+}
+
+/**
+ * Ver detalles de una cita
+ */
+function viewAppointmentDetails(appointmentId) {
+    fetch(`/admin/citas/${appointmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            // Aquí podrías mostrar un modal con los detalles completos
+            // o redirigir a una página de detalles
+            window.location.href = `/admin/citas/${appointmentId}`;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los detalles de la cita');
+        });
+}
+
 // Delegación de eventos para manejar los clicks en toda la tabla
 document.addEventListener('click', function(e) {
-    // 1. Manejo del botón de dropdown (tres puntos)
+    // Manejo del botón de dropdown (tres puntos)
     if (e.target.closest('.dropdown-toggle')) {
         e.preventDefault();
         e.stopPropagation();

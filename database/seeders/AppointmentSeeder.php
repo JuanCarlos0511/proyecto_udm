@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class AppointmentSeeder extends Seeder
 {
@@ -14,14 +15,29 @@ class AppointmentSeeder extends Seeder
      */
     public function run(): void
     {
+        // Desactivar verificación de claves foráneas temporalmente
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        
         // Clear existing appointments
         Appointment::truncate();
+        
+        // Reset appointment groups
+        \App\Models\AppointmentGroup::truncate();
+        
+        // Reactivar verificación de claves foráneas
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
         
         // Get user IDs for patients
         $patients = User::where('role', 'paciente')->get();
         
         // Get user IDs for doctors
         $doctors = User::where('role', 'doctor')->get();
+        
+        // Asegurarnos de que el doctor con ID 15 exista
+        $doctorId15 = User::find(15);
+        if (!$doctorId15 || $doctorId15->role !== 'doctor') {
+            echo "AVISO: No se encontró un doctor con ID 15, se usarán doctores aleatorios\n";
+        }
         
         // Predefined appointment subjects
         $subjects = [
@@ -117,6 +133,71 @@ class AppointmentSeeder extends Seeder
             }
         }
         
+        // 3. Citas específicas para el doctor con ID 15 en estado "Solicitado"
+        $this->createAppointmentsForDoctor15($patients, $subjects);
+        
         echo "Seedeo de citas completado. Total: " . Appointment::count() . " citas creadas.\n";
+    }
+    
+    /**
+     * Crear citas específicas para el doctor con ID 15
+     */
+    private function createAppointmentsForDoctor15($patients, $subjects)
+    {
+        $doctorId15 = User::find(15);
+        if (!$doctorId15 || $doctorId15->role !== 'doctor') {
+            echo "No se pudieron crear citas específicas para el doctor con ID 15 porque no existe o no es un doctor\n";
+            return;
+        }
+        
+        echo "Creando citas específicas para el doctor {$doctorId15->name} (ID: 15)\n";
+        
+        // Seleccionar algunos pacientes para las citas
+        $selectedPatients = $patients->random(min(5, count($patients)));
+        
+        foreach ($selectedPatients as $patient) {
+            // Fecha dentro de los próximos 7 días
+            $randomDays = mt_rand(1, 7);
+            $randomDate = date('Y-m-d', strtotime("+{$randomDays} days"));
+            $hours = str_pad(mt_rand(8, 18), 2, '0', STR_PAD_LEFT); // Horas entre 08 y 18
+            $minutes = ['00', '15', '30', '45'][mt_rand(0, 3)];
+            $date = "{$randomDate} {$hours}:{$minutes}:00";
+            
+            $subject = $subjects[array_rand($subjects)];
+            $modality = ['Consultorio', 'Domicilio'][array_rand(['Consultorio', 'Domicilio'])];
+            $price = mt_rand(5000, 20000) / 100;
+            
+            // Crear grupo de citas
+            $appointmentGroup = \App\Models\AppointmentGroup::create([
+                'name' => "Cita entre {$patient->name} y {$doctorId15->name}",
+                'description' => "Cita para {$subject} el {$date}",
+            ]);
+            
+            // Cita para el paciente en estado "Solicitado"
+            $patientAppointment = Appointment::create([
+                'date' => $date,
+                'user_id' => $patient->id,
+                'subject' => $subject,
+                'status' => 'Solicitado',
+                'modality' => $modality,
+                'price' => $price,
+                'appointment_group_id' => $appointmentGroup->id,
+            ]);
+            
+            // Cita correspondiente para el doctor
+            $doctorAppointment = Appointment::create([
+                'date' => $date,
+                'user_id' => $doctorId15->id,
+                'subject' => $subject,
+                'status' => 'Solicitado',
+                'modality' => $modality,
+                'price' => $price,
+                'appointment_group_id' => $appointmentGroup->id,
+            ]);
+            
+            echo "  - Creada cita Solicitada entre paciente {$patient->name} y doctor {$doctorId15->name} para {$date}\n";
+        }
+        
+        echo "Total de citas específicas creadas para doctor ID 15: " . ($selectedPatients->count() * 2) . "\n";
     }
 }

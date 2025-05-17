@@ -25,20 +25,44 @@ class AppointmentController extends Controller
         
         Log::info('Consultando citas con usuario: ' . $user->name . ', rol: ' . $user->role);
         
-        // Consulta base para obtener citas de pacientes
-        $query = Appointment::with('user')
-            ->whereHas('user', function($query) {
-                $query->where('role', 'paciente');
-            })
-            ->orderBy('date', 'desc');
+        // Si el usuario es un administrador, mostrar todas las citas de pacientes
+        if ($user->role === 'administrador') {
+            // Obtener todas las citas donde el usuario sea un paciente
+            $query = Appointment::with('user')
+                ->whereHas('user', function($query) {
+                    $query->where('role', 'paciente');
+                })
+                ->orderBy('date', 'desc');
+                
+            $appointments = $query->get();
+        } 
+        // Si el usuario es un doctor, solo mostrar sus citas (donde es el doctor asignado)
+        else if ($user->role === 'doctor') {
+            Log::info('Doctor ID: ' . $user->id);
             
-        // Si el usuario es un doctor, filtrar solo sus citas asignadas
-        if ($user->role === 'doctor') {
-            $query->where('user_id', $user->id);
+            // Primero obtenemos los grupos de citas donde este doctor está asignado
+            $doctorAppointmentGroups = Appointment::where('user_id', $user->id)
+                ->whereNotNull('appointment_group_id')
+                ->pluck('appointment_group_id')
+                ->toArray();
+                
+            Log::info('Grupos de citas del doctor: ', $doctorAppointmentGroups);
+            
+            // Ahora obtenemos las citas de pacientes que pertenecen a estos grupos
+            $query = Appointment::with('user')
+                ->whereIn('appointment_group_id', $doctorAppointmentGroups)
+                ->whereHas('user', function($query) {
+                    $query->where('role', 'paciente');
+                })
+                ->orderBy('date', 'desc');
+                
+            $appointments = $query->get();
+        }
+        // Para otros roles (pacientes), no mostrar citas
+        else {
+            $appointments = collect([]);
         }
         
-        $appointments = $query->get();
-            
         Log::info('Citas encontradas: ' . $appointments->count());
         
         // Transformar los registros para añadir el timeToHuman

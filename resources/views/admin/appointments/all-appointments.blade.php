@@ -1,19 +1,22 @@
 @extends('layouts.admin')
 
-@section('title', 'Todas las Citas')
+@section('title', 'Buzón de Citas')
 
-@section('page-title', 'Todas las Citas')
+@section('page-title', 'Buzón de Citas')
 
 @section('breadcrumb')
     <span class="breadcrumb-separator">/</span>
     <span><a href="{{ route('admin.dashboard') }}">Tablero</a></span>
     <span class="breadcrumb-separator">/</span>
-    <span>Todas las Citas</span>
+    <span>Buzón de Citas</span>
 @endsection
 
 @section('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin/main.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dropdown-fix.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/filter-buttons.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/layout/admin-layout.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 @endsection
 
@@ -61,7 +64,33 @@
 
     <div class="appointments-container">
         <div class="appointments-header">
-            <h2 class="appointments-title">Historial de Citas</h2>
+            <h2 class="appointments-title">Buzón de Citas</h2>
+            <div class="filter-container">
+                <div class="filter-buttons">
+                    <span class="filter-label">Filtrar por estado:</span>
+                    <div class="btn-group status-filter-buttons">
+                        <button type="button" class="btn btn-filter active" data-status="all">
+                            <i class="fas fa-list"></i> Todas
+                        </button>
+                        <button type="button" class="btn btn-filter" data-status="Solicitado">
+                            <i class="fas fa-clock"></i> Solicitadas
+                            <span class="badge badge-primary">{{ $appointments->where('status', 'Solicitado')->count() }}</span>
+                        </button>
+                        <button type="button" class="btn btn-filter" data-status="Agendado">
+                            <i class="fas fa-calendar-check"></i> Agendadas
+                            <span class="badge badge-success">{{ $appointments->where('status', 'Agendado')->count() }}</span>
+                        </button>
+                        <button type="button" class="btn btn-filter" data-status="Completado">
+                            <i class="fas fa-check-circle"></i> Completadas
+                            <span class="badge badge-info">{{ $appointments->where('status', 'Completado')->count() }}</span>
+                        </button>
+                        <button type="button" class="btn btn-filter" data-status="Cancelado">
+                            <i class="fas fa-times-circle"></i> Canceladas
+                            <span class="badge badge-danger">{{ $appointments->where('status', 'Cancelado')->count() }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="table-responsive">
@@ -125,16 +154,26 @@
                         </td>
                         <td class="actions-cell">
                             <div class="action-buttons">
-                                @if($appointment->status !== 'Completado' && $appointment->status !== 'Cancelado')
+                                @if($appointment->status == 'Solicitado')
+                                    <button type="button" class="btn btn-action btn-accept" 
+                                        onclick="acceptAppointment('{{ $appointment->id }}')" title="Aceptar cita">
+                                        <i class="fas fa-check"></i> Aceptar
+                                    </button>
                                     <button type="button" class="btn btn-action btn-edit" 
                                         onclick="toggleAppointmentDetails('{{ $appointment->id }}')" title="Editar cita">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                @elseif($appointment->status == 'Agendado')
+                                    <button type="button" class="btn btn-action btn-start" 
+                                        onclick="showStartAppointmentModal('{{ $appointment->id }}')" title="Iniciar cita">
+                                        <i class="fas fa-play-circle"></i> Iniciar
+                                    </button>
+                                @elseif($appointment->status == 'Completado' || $appointment->status == 'Cancelado')
+                                    <button type="button" class="btn btn-action btn-view" 
+                                        onclick="viewAppointmentDetails('{{ $appointment->id }}')" title="Ver detalles">
+                                        <i class="fas fa-eye"></i> Detalles
+                                    </button>
                                 @endif
-                                <button type="button" class="btn btn-action btn-view" 
-                                    onclick="viewAppointmentDetails('{{ $appointment->id }}')" title="Ver detalles">
-                                    <i class="fas fa-eye"></i>
-                                </button>
                             </div>
                         </td>
                     </tr>
@@ -272,6 +311,85 @@
         </div>
         
 
+    </div>
+
+    <!-- Modal para iniciar cita -->
+    <div id="startAppointmentModal" class="modal fade" style="display: none;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Iniciar Cita</h4>
+                    <button type="button" class="close" onclick="closeStartAppointmentModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Datos del paciente -->
+                        <div class="col-md-4">
+                            <div class="patient-profile-card">
+                                <div class="profile-header">
+                                    <div class="profile-avatar">
+                                        <img id="patientAvatar" src="{{ asset('assets/default-avatar.png') }}" alt="Foto del paciente">
+                                    </div>
+                                    <h5 id="patientName" class="profile-name">Nombre del Paciente</h5>
+                                </div>
+                                <div class="profile-details">
+                                    <div class="profile-detail-item">
+                                        <span class="detail-label"><i class="fas fa-envelope"></i> Email:</span>
+                                        <span id="patientEmail" class="detail-value">correo@ejemplo.com</span>
+                                    </div>
+                                    <div class="profile-detail-item">
+                                        <span class="detail-label"><i class="fas fa-phone"></i> Teléfono:</span>
+                                        <span id="patientPhone" class="detail-value">123-456-7890</span>
+                                    </div>
+                                    <div class="profile-detail-item">
+                                        <span class="detail-label"><i class="fas fa-calendar"></i> Edad:</span>
+                                        <span id="patientAge" class="detail-value">30 años</span>
+                                    </div>
+                                    <div class="profile-detail-item">
+                                        <span class="detail-label"><i class="fas fa-map-marker-alt"></i> Dirección:</span>
+                                        <span id="patientAddress" class="detail-value">Calle Principal #123</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulario para iniciar cita -->
+                        <div class="col-md-8">
+                            <form id="startAppointmentForm" method="POST">
+                                @csrf
+                                <input type="hidden" id="appointmentId" name="appointment_id">
+                                
+                                <div class="form-group">
+                                    <label for="appointmentNotes"><i class="fas fa-clipboard"></i> Notas de la Cita:</label>
+                                    <textarea id="appointmentNotes" name="notes" class="form-control" rows="8" placeholder="Escribe las notas de la cita aquí..."></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="appointmentTotal"><i class="fas fa-dollar-sign"></i> Precio Total:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">$</span>
+                                        </div>
+                                        <input type="number" step="0.01" id="appointmentTotal" name="price" class="form-control" placeholder="0.00">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions text-right">
+                                    <button type="button" class="btn btn-secondary" onclick="closeStartAppointmentModal()">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="completeAppointment()">
+                                        <i class="fas fa-check-circle"></i> Completar Cita
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

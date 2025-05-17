@@ -79,14 +79,13 @@
 
 .appointments-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: nowrap;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
 .appointments-title {
-    font-size: 20px;
+    font-size: 1.75rem;
     font-weight: 600;
     color: #333;
     margin: 0;
@@ -357,12 +356,48 @@
 }
 
 .btn-accept {
-    color: #28a745;
-    background-color: rgba(40, 167, 69, 0.1);
+    color: #ffffff;
+    background-color: #28a745;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    border: none;
+    min-width: 110px;
+    justify-content: center;
+    white-space: nowrap;
 }
 
 .btn-accept:hover {
-    background-color: rgba(40, 167, 69, 0.2);
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+}
+
+.btn-start {
+    color: #ffffff;
+    background-color: #3498db;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+    border: none;
+}
+
+.btn-start:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
 }
 
 .btn-action:disabled {

@@ -1,0 +1,139 @@
+/* Estilos para los botones de filtro */
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.filter-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.filter-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.status-filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.btn-filter {
+    padding: 10px 14px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.btn-filter:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-filter.active {
+    background-color: #4361ee;
+    color: white;
+    border-color: #4361ee;
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+}
+
+.btn-filter i {
+    font-size: 0.9rem;
+}
+
+.btn-filter .badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: inherit;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 10px;
+    margin-left: 4px;
+}
+
+/* Estilos específicos para cada estado */
+.btn-filter[data-status="Solicitado"] {
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.btn-filter[data-status="Solicitado"].active {
+    background-color: #3498db;
+    color: white;
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+.btn-filter[data-status="Agendado"] {
+    border-color: #2ecc71;
+    color: #2ecc71;
+}
+
+.btn-filter[data-status="Agendado"].active {
+    background-color: #2ecc71;
+    color: white;
+    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+}
+
+.btn-filter[data-status="Completado"] {
+    border-color: #9b59b6;
+    color: #9b59b6;
+}
+
+.btn-filter[data-status="Completado"].active {
+    background-color: #9b59b6;
+    color: white;
+    box-shadow: 0 4px 10px rgba(155, 89, 182, 0.3);
+}
+
+.btn-filter[data-status="Cancelado"] {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.btn-filter[data-status="Cancelado"].active {
+    background-color: #e74c3c;
+    color: white;
+    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .status-filter-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .btn-filter {
+        min-width: unset;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .status-filter-buttons {
+        grid-template-columns: 1fr;
+    }
+}
