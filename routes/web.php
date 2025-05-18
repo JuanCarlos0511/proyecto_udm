@@ -173,9 +173,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/reportes/data', 'App\Http\Controllers\Admin\ReportController@getAppointmentData')->name('admin.reports.data');
     
     // Rutas de facturas de administrador
-    Route::get('/admin/informacion-facturar', function() {
-        return view('admin.billing.generate-bills');
-    })->name('admin.bills.generate');
+// Route::get('/admin/informacion-facturar', function() {
+//     return view('admin.billing.generate-bills');
+// })->name('admin.bills.generate');
+
     
     Route::post('/admin/bills', 'App\Http\Controllers\Admin\BillingController@store')->name('admin.bills.store');
     Route::get('/admin/facturas', function() {
