@@ -178,7 +178,7 @@ Route::middleware(['auth'])->group(function () {
 // })->name('admin.bills.generate');
 
     
-   // Route::post('/admin/bills', 'App\Http\Controllers\Admin\BillingController@store')->name('admin.bills.store');
+
     Route::get('/admin/facturas', function() {
         return view('admin.bills.bills-list');
     })->name('admin.bills.index');
@@ -230,14 +230,14 @@ Route::middleware(['auth'])->group(function () {
     })->name('admin.all-patient-followups');
     
     // Rutas para gestión de seguimientos
-    Route::resource('admin/seguimiento', 'App\Http\Controllers\FollowUpController', ['as' => 'follow-ups', 'names' => [
-        'index' => 'follow-ups.index',
-        'create' => 'follow-ups.create',
-        'store' => 'follow-ups.store',
-        'show' => 'follow-ups.show',
-        'edit' => 'follow-ups.edit',
-        'update' => 'follow-ups.update',
-        'destroy' => 'follow-ups.destroy'
+    Route::resource('admin/seguimiento', 'App\Http\Controllers\FollowUpController', ['as' => 'admin.follow-ups', 'names' => [
+        'index' => 'admin.follow-ups.index',
+        'create' => 'admin.follow-ups.create',
+        'store' => 'admin.follow-ups.store',
+        'show' => 'admin.follow-ups.show',
+        'edit' => 'admin.follow-ups.edit',
+        'update' => 'admin.follow-ups.update',
+        'destroy' => 'admin.follow-ups.destroy'
     ]]);
     Route::get('admin/seguimiento/crear/{patient_id}', [FollowUpController::class, 'createForPatient'])->name('follow-ups.create-for-patient');
     Route::get('admin/seguimiento/por-doctor/{doctor_id}', [FollowUpController::class, 'getByDoctor'])->name('follow-ups.by-doctor');
