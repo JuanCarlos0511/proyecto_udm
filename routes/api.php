@@ -38,7 +38,13 @@ Route::get('/appointments/status/{status}', [AppointmentController::class, 'getB
 
 // FollowUp routes - accesibles sin autenticación para pruebas
 // En producción, estas rutas deben estar protegidas con middleware 'auth'
-Route::apiResource('follow-ups', FollowUpController::class);
+Route::apiResource('follow-ups', FollowUpController::class)->names([
+    'index' => 'api.follow-ups.index',
+    'store' => 'api.follow-ups.store',
+    'show' => 'api.follow-ups.show',
+    'update' => 'api.follow-ups.update',
+    'destroy' => 'api.follow-ups.destroy'
+]);
 
 // Rutas adicionales para seguimientos
 Route::get('/follow-ups/doctor', [FollowUpController::class, 'getFollowUpsForDoctor']);
