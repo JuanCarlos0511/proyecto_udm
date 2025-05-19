@@ -69,9 +69,11 @@
                                     @endif
                                 @endauth
                             </a>
-                            <a href="{{ url('admin') }}" class="{{ request()->is('admin*') ? 'active' : '' }}">
-                                <i class="fas fa-user-shield"></i> Panel Admin
-                            </a>
+                            @if(isset($isAdminOrDoctor) && $isAdminOrDoctor)
+                                <a href="{{ url('admin') }}" class="{{ request()->is('admin*') ? 'active' : '' }}">
+                                    <i class="fas fa-user-shield"></i> Panel Admin
+                                </a>
+                            @endif
                             <a href="{{ url('ajustes') }}">
                                 <i class="fas fa-cog"></i> Ajustes
                             </a>

@@ -32,10 +32,16 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             if (Auth::check()) {
                 $profileController = new ProfileController();
+                $user = Auth::user();
+                
+                // Variable simple para verificar si el usuario es admin o doctor
+                $isAdminOrDoctor = in_array($user->role, ['admin', 'doctor']);
+                
                 $view->with([
                     'isProfileComplete' => $profileController->isProfileComplete(),
                     'hasOptionalFieldsMissing' => $profileController->hasOptionalFieldsMissing(),
-                    'isProfileFullyComplete' => $profileController->isProfileFullyComplete()
+                    'isProfileFullyComplete' => $profileController->isProfileFullyComplete(),
+                    'isAdminOrDoctor' => $isAdminOrDoctor
                 ]);
             }
         });
