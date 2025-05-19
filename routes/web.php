@@ -187,7 +187,7 @@ Route::middleware(['auth'])->group(function () {
     // Rutas de facturas de administrador
     Route::get('/admin/informacion-facturar', function() {
         return view('admin.billing.generate-bills');
-    })->name('admin.bills.generate');
+    })->name('admin.bills.info');
     
     Route::post('/admin/bills', 'App\Http\Controllers\Admin\BillingController@store')->name('admin.bills.store');
     Route::post('/admin/bills/{id}/complete', 'App\Http\Controllers\Admin\BillingController@markAsCompleted')->name('admin.bills.complete');
