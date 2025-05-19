@@ -39,6 +39,17 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 Route::middleware(['auth'])->group(function () {
     // Rutas de perfil
     Route::get('/perfil', [ProfileController::class, 'show'])->name('profile');
+
+    // Rutas de administrador y doctor (protegidas por autenticación)
+    Route::middleware(['auth'])->prefix('admin')->group(function () {
+        // Historial de citas
+        Route::get('/historial-citas', [\App\Http\Controllers\Admin\AppointmentHistoryController::class, 'index'])
+            ->name('admin.appointments.history');
+        
+        // API para obtener datos del historial de citas (usando sesión web)
+        Route::post('/api/historial-citas', [\App\Http\Controllers\Api\AppointmentHistoryController::class, 'getAppointmentData'])
+            ->name('admin.api.appointment-history');
+    });
     Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/perfil/photo', [ProfileController::class, 'deletePhoto'])->name('profile.delete-photo');
     
@@ -124,6 +135,7 @@ Route::middleware(['auth'])->group(function () {
         })->name('admin.appointment-all-appointments');
         
         Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index']);
+        Route::get('/admin/citas/{id}/start-data', 'App\Http\Controllers\Admin\AppointmentController@showStartData')->name('admin.appointments.start-data');
         Route::get('/admin/citas-data', 'App\Http\Controllers\Admin\AppointmentController@getAppointmentsData')->name('admin.appointments.data');
         Route::get('/admin/citas-domicilio', 'App\Http\Controllers\Admin\AppointmentController@createHomeAppointment')->name('admin.appointments.home');
         Route::get('/admin/citas-consultorio', 'App\Http\Controllers\Admin\AppointmentController@createClinicAppointment')->name('admin.appointments.clinic');
@@ -178,6 +190,10 @@ Route::middleware(['auth'])->group(function () {
     })->name('admin.bills.generate');
     
     Route::post('/admin/bills', 'App\Http\Controllers\Admin\BillingController@store')->name('admin.bills.store');
+    Route::post('/admin/bills/{id}/complete', 'App\Http\Controllers\Admin\BillingController@markAsCompleted')->name('admin.bills.complete');
+    
+    // Ruta para obtener los datos de facturas en formato JSON
+    Route::post('/admin/api/historial-facturas', 'App\Http\Controllers\Api\BillingHistoryController@getBillsData')->name('admin.api.billing-history');
     Route::get('/admin/facturas', function() {
         return view('admin.bills.bills-list');
     })->name('admin.bills.index');
@@ -192,16 +208,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/doctores-data', 'App\Http\Controllers\Admin\DoctorController@getDoctorsData')->name('admin.doctors.data');
     
     // Rutas para citas
-    Route::get('/admin/tablero/citas-todas', 'App\Http\Controllers\Admin\AppointmentController@index')->name('admin.appointments.index');
+    Route::get('/admin/tablero/citas-todas', 'App\Http\Controllers\Admin\AppointmentController@patientOnlyAppointments')->name('admin.appointments.index');
     // Ruta PUT para actualizar citas directamente desde la vista
     Route::put('/admin/tablero/citas-todas', 'App\Http\Controllers\Admin\AppointmentController@updateFromView');
+    
+    // Ruta alternativa para ver todas las citas (incluyendo duplicados) en caso de necesidad
+    Route::get('/admin/tablero/citas-todas/todas', 'App\Http\Controllers\Admin\AppointmentController@index')->name('admin.appointments.all');
     
     // Define explicit PUT route for appointment updates to bypass any routing issues
     Route::put('/admin/citas/{id}', 'App\Http\Controllers\Admin\AppointmentController@update')->name('admin.appointments.update');
     
     Route::resource('/admin/citas', 'App\Http\Controllers\Admin\AppointmentController', ['as' => 'admin'])->except(['index', 'update']);
     Route::get('/admin/citas-data', 'App\Http\Controllers\Admin\AppointmentController@getAppointmentsData')->name('admin.appointments.data');
-    Route::post('/admin/appointments/{id}/accept', 'App\Http\Controllers\Admin\AppointmentController@accept')->name('admin.appointments.accept');
+    Route::put('/admin/citas/{id}/accept', 'App\Http\Controllers\Admin\AppointmentController@accept')->name('admin.appointments.accept');
     Route::post('/admin/appointments/{id}/cancel', 'App\Http\Controllers\Admin\AppointmentController@cancel')->name('admin.appointments.cancel');
     Route::get('/admin/citas-domicilio', 'App\Http\Controllers\Admin\AppointmentController@createHomeAppointment')->name('admin.appointments.home');
     Route::get('/admin/citas-consultorio', 'App\Http\Controllers\Admin\AppointmentController@createClinicAppointment')->name('admin.appointments.clinic');
@@ -258,20 +277,9 @@ Route::middleware(['auth'])->group(function () {
     // New appointment routes
     Route::get('/appointment-clinic', [AppointmentController::class, 'create'])->name('appointment.clinic');
     Route::get('/appointment-home', function () {
-    $followUps = \App\Models\FollowUp::with(['doctor', 'patient'])
-        ->active()
-        ->get()
-        ->map(function($followUp) {
-            return [
-                'doctor' => $followUp->doctor->name,
-                'patient' => $followUp->patient->name,
-                'treatment' => $followUp->notes,
-                'next_appointment' => $followUp->end_date ? $followUp->end_date->format('d/m/Y') : 'Sin fecha definida'
-            ];
-        });
-    
-    return view('appointment-home', ['followUps' => $followUps]);
-})->name('appointment-home');
+        // Ya no pasamos datos de seguimientos porque no se usan en esta vista
+        return view('appointment-home');
+    })->name('appointment-home');
     
     Route::get('/history', function () {
         return view('history');

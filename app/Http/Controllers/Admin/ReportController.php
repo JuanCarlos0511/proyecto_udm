@@ -49,12 +49,33 @@ class ReportController extends Controller
         // Format dates for query
         $startDate = Carbon::parse($request->startDate)->startOfDay();
         $endDate = Carbon::parse($request->endDate)->endOfDay();
-
-        // Get appointments within the date range
-        $appointments = Appointment::with('user')
+        
+        // Obtener el usuario actual para aplicar filtros según el rol
+        $user = auth()->user();
+        
+        // Iniciar la consulta - solo incluir citas con estado "Completado"
+        $query = Appointment::with('user')
             ->whereBetween('date', [$startDate, $endDate])
-            ->orderBy('date')
-            ->get()
+            ->where('status', 'Completado'); // Solo mostrar citas completadas
+            
+        // Aplicar filtros según el rol del usuario
+        if ($user->role === 'doctor') {
+            // Si es doctor, solo mostrar sus propias citas
+            $doctorAppointmentGroups = Appointment::where('user_id', $user->id)
+                ->whereNotNull('appointment_group_id')
+                ->pluck('appointment_group_id')
+                ->toArray();
+                
+            $query->whereIn('appointment_group_id', $doctorAppointmentGroups);
+        }
+        
+        // Solo incluir citas de pacientes (evita duplicados doctor-paciente)
+        $query->whereHas('user', function($q) {
+            $q->where('role', 'paciente');
+        });
+        
+        // Obtener las citas filtradas y formatearlas
+        $appointments = $query->orderBy('date')->get()
             ->map(function ($appointment) {
                 return [
                     'id' => $appointment->id,
@@ -67,19 +88,25 @@ class ReportController extends Controller
                 ];
             });
 
-        // Calculate statistics
+        // Calculate statistics - solo citas completadas para las estadísticas
         $totalAppointments = $appointments->count();
-        $completedAppointments = Appointment::whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'Completado')
-            ->count();
-        $canceledAppointments = Appointment::whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'Cancelado')
-            ->count();
-        $pendingAppointments = Appointment::whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'Agendado')
-            ->count();
         $totalIncome = Appointment::whereBetween('date', [$startDate, $endDate])
-            ->sum('price');
+            ->where('status', 'Completado');
+            
+        // Filtrar ingresos por doctor si es necesario
+        if ($user->role === 'doctor') {
+            $doctorAppointmentGroups = Appointment::where('user_id', $user->id)
+                ->whereNotNull('appointment_group_id')
+                ->pluck('appointment_group_id')
+                ->toArray();
+                
+            $totalIncome->whereIn('appointment_group_id', $doctorAppointmentGroups);
+        }
+        
+        // Solo citas de pacientes para el cálculo de ingresos
+        $totalIncome = $totalIncome->whereHas('user', function($q) {
+            $q->where('role', 'paciente');
+        })->sum('price');
 
         return response()->json([
             'success' => true,
@@ -87,9 +114,9 @@ class ReportController extends Controller
                 'appointments' => $appointments,
                 'stats' => [
                     'total' => $totalAppointments,
-                    'completed' => $completedAppointments,
-                    'canceled' => $canceledAppointments,
-                    'pending' => $pendingAppointments,
+                    'completed' => $totalAppointments, // Todas las citas son completadas ahora
+                    'canceled' => 0, // No mostramos citas canceladas
+                    'pending' => 0, // No mostramos citas pendientes
                     'totalIncome' => number_format($totalIncome, 2)
                 ],
                 'dateRange' => [

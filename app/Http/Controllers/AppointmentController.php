@@ -76,6 +76,53 @@ class AppointmentController extends Controller
         return view('appointment-clinic', compact('user', 'doctors'));
     }
 
+    /**
+     * Procesa el campo de fecha para asegurar que se guarde con el formato correcto incluyendo la hora
+     * 
+     * @param array $data Los datos de la cita
+     * @return array Datos procesados con la fecha en formato correcto
+     */
+    private function processDateField($data)
+    {
+        if (isset($data['date'])) {
+            // Verificar si la fecha ya tiene formato válido de datetime
+            try {
+                $parsedDate = \Carbon\Carbon::parse($data['date']);
+                
+                // Si la hora es 00:00:00, probablemente es porque solo se proporcionó una fecha sin hora
+                // En ese caso, verificamos si hay campos de hora separados
+                if ($parsedDate->format('H:i:s') === '00:00:00' && isset($data['time'])) {
+                    // Extraer partes de fecha y hora
+                    $date = $parsedDate->format('Y-m-d');
+                    $time = $data['time']; // Formato esperado: HH:MM o HH:MM:SS
+                    
+                    // Combinar fecha y hora
+                    $data['date'] = $date . ' ' . $time;
+                } else if ($parsedDate->format('H:i:s') === '00:00:00' && isset($data['hour']) && isset($data['minute'])) {
+                    // Alternativa: campos de hora y minuto separados
+                    $date = $parsedDate->format('Y-m-d');
+                    $time = sprintf('%02d:%02d:00', $data['hour'], $data['minute']);
+                    
+                    // Combinar fecha y hora
+                    $data['date'] = $date . ' ' . $time;
+                }
+                
+                // Registrar para depuración
+                \Illuminate\Support\Facades\Log::info('Fecha procesada:', [
+                    'original' => $data['date'],
+                    'procesada' => \Carbon\Carbon::parse($data['date'])->format('Y-m-d H:i:s')
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error al procesar fecha:', [
+                    'error' => $e->getMessage(),
+                    'fecha_original' => $data['date']
+                ]);
+            }
+        }
+        
+        return $data;
+    }
+    
     public function store(Request $request)
     {
         DB::beginTransaction();
@@ -148,18 +195,37 @@ class AppointmentController extends Controller
                 throw $e;
             }
 
+            // Primero crear un grupo de citas si hay un doctor seleccionado
+            $appointmentGroup = null;
+            if (isset($appointmentData['doctor_id']) && !empty($appointmentData['doctor_id'])) {
+                $appointmentGroup = new \App\Models\AppointmentGroup();
+                $appointmentGroup->save();
+                Log::info('Grupo de citas creado:', ['id' => $appointmentGroup->id]);
+            }
+            
+            // Procesar la fecha correctamente
+            $appointmentData = $this->processDateField($appointmentData);
+            
             // Create appointment for the patient
             $appointment = new Appointment($appointmentData);
             $appointment->user_id = $user->id;
+            
+            // Asignar el grupo de citas si existe
+            if ($appointmentGroup) {
+                $appointment->appointment_group_id = $appointmentGroup->id;
+            }
+            
             $appointment->save();
-            Log::info('Cita del paciente guardada correctamente:', ['id' => $appointment->id]);
+            Log::info('Cita del paciente guardada correctamente:', ['id' => $appointment->id, 'grupo' => $appointment->appointment_group_id]);
             
             // If a doctor is selected, create a duplicate appointment for the doctor
             if (isset($appointmentData['doctor_id']) && !empty($appointmentData['doctor_id'])) {
+                // Aseguramos que estamos usando los datos procesados correctamente
                 $doctorAppointment = new Appointment($appointmentData);
                 $doctorAppointment->user_id = $appointmentData['doctor_id']; // Use doctor's user_id
+                $doctorAppointment->appointment_group_id = $appointmentGroup->id; // Asociar al mismo grupo
                 $doctorAppointment->save();
-                Log::info('Cita del doctor guardada correctamente:', ['id' => $doctorAppointment->id]);
+                Log::info('Cita del doctor guardada correctamente:', ['id' => $doctorAppointment->id, 'grupo' => $doctorAppointment->appointment_group_id]);
             }
 
             DB::commit();

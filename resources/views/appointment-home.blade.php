@@ -188,5 +188,5 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('js/modernAppointmentHomeController.js') }}"></script>
+    <script src="{{ asset('js/modernAppointmentHomeNew.js') }}"></script>
 @endsection

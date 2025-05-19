@@ -41,6 +41,7 @@ class Appointment extends Model
         'modality',
         'price',
         'diagnosis',
+        'notes',
         'referred_by',
         'contact_name',
         'contact_relationship',
@@ -53,7 +54,7 @@ class Appointment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'date' => 'date',
+        'date' => 'datetime',  // Cambiado a datetime para preservar la hora
         'price' => 'decimal:2',
     ];
 
@@ -85,18 +86,39 @@ class Appointment extends Model
     }
     
     /**
-     * Obtener la cita relacionada (del doctor si esta es del paciente, o del paciente si esta es del doctor).
+     * Obtener las citas relacionadas que pertenecen al mismo grupo de citas.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function relatedAppointment()
+    public function relatedAppointments()
+    {
+        return $this->hasMany(Appointment::class, 'appointment_group_id', 'appointment_group_id')
+            ->where('id', '!=', $this->id); // Excluir la propia cita
+    }
+    
+    /**
+     * Obtener la cita relacionada (para compatibilidad con código existente).
+     * Este método no debe usarse con eager loading (with()).
+     * 
+     * @return Appointment|null
+     */
+    public function getRelatedAppointment()
     {
         if (!$this->appointment_group_id) {
             return null;
         }
         
+        // Si la relación user no está cargada, cargarla
+        if (!$this->relationLoaded('user')) {
+            $this->load('user');
+        }
+        
+        // Determinar el rol objetivo basado en el rol del usuario actual
         $currentUserRole = $this->user->role;
         $targetRole = ($currentUserRole === 'paciente') ? 'doctor' : 'paciente';
         
         return Appointment::where('appointment_group_id', $this->appointment_group_id)
+            ->where('id', '!=', $this->id)
             ->whereHas('user', function($query) use ($targetRole) {
                 $query->where('role', $targetRole);
             })

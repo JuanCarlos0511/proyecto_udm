@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('appointments', function (Blueprint $table) {
             $table->string('diagnosis')->nullable();
+            $table->text('notes')->nullable();
             $table->string('referred_by')->nullable();
         });
     }
@@ -25,6 +26,7 @@ return new class extends Migration
         Schema::table('appointments', function (Blueprint $table) {
             $table->dropColumn([
                 'diagnosis',
+                'notes',
                 'referred_by'
             ]);
         });

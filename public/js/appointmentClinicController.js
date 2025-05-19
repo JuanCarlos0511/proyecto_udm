@@ -234,11 +234,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentHour = now.getHours();
         const currentMinutes = now.getMinutes();
         
-        // Calculate the minimum available hour (next hour + 1)
-        // If we're at 10:13, the next available hour would be 12:00
-        let minAvailableHour = currentHour + 2; // Start with current hour + 2
+        // Calculate the minimum available hour - Hora actual + 2 (según regla solicitada)
+        // Si son las 4:05, la siguiente hora es 5:00 y la siguiente de esta es 6:00
+        let minAvailableHour = currentHour + 2;
         
-        // If we're already past the startHour and it's the same day, adjust the startHour
+        console.log('Hora actual:', currentHour, 'Minutos:', currentMinutes);
+        console.log('Hora mínima disponible:', minAvailableHour);
+        
+        // Verificar si la fecha seleccionada es hoy
         const isToday = selectedDate && 
             selectedDate.getDate() === now.getDate() && 
             selectedDate.getMonth() === now.getMonth() && 
@@ -248,15 +251,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const timeSlot = document.createElement('div');
             timeSlot.classList.add('time-slot');
             
-            // Format time as 12-hour with AM/PM
-            const hourFormatted = hour > 12 ? hour - 12 : hour;
-            const amPm = hour >= 12 ? 'PM' : 'AM';
-            timeSlot.textContent = `${hourFormatted}:00 ${amPm}`;
+            // Format time as 24-hour format for mejor claridad
+            timeSlot.textContent = `${hour}:00 hrs`;
             
             // Disable hours before the minimum available hour on the current day
-            if (isToday && hour < minAvailableHour) {
+            const hourTotalMinutes = hour * 60;
+            const currentTotalMinutes = (currentHour * 60) + currentMinutes;
+            const minAvailableTotalMinutes = ((currentHour + 2) * 60); // Hora actual + 2 horas en minutos
+            
+            // Deshabilitar todas las horas que estén a menos de 2 horas completas de la hora actual
+            if (isToday && hourTotalMinutes < minAvailableTotalMinutes) {
                 timeSlot.classList.add('disabled');
-                timeSlot.title = 'Esta hora no está disponible para agendar';
+                timeSlot.title = 'Este horario no está disponible para agendar. Solo puede agendar a partir de las ' + 
+                                 Math.ceil((currentHour + 2)) + ':00 hrs.';
+                console.log('Slot NO disponible:', hour + ':00', 'Minutos totales:', hourTotalMinutes, 'Mínimo requerido:', minAvailableTotalMinutes);
             } else {
                 timeSlot.addEventListener('click', function() {
                     // Remove selected class from all time slots

@@ -1,23 +1,14 @@
-// Datos de ejemplo para las citas
-const appointmentsData = [
-    { id: 1, patient: 'María González', doctor: 'Dr. Juan Pérez', date: '2025-05-13', time: '09:00 AM', status: 'completed', service: 'Consulta General', timeToHuman: 'Hoy' },
-    { id: 2, patient: 'Carlos Rodríguez', doctor: 'Dra. María López', date: '2025-05-13', time: '10:30 AM', status: 'pending', service: 'Limpieza Dental', timeToHuman: 'Hoy' },
-    { id: 3, patient: 'Ana Martínez', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-13', time: '11:00 AM', status: 'cancelled', service: 'Extracción', timeToHuman: 'Hoy' },
-    { id: 4, patient: 'José López', doctor: 'Dr. Juan Pérez', date: '2025-05-12', time: '09:30 AM', status: 'completed', service: 'Consulta General', timeToHuman: 'Ayer' },
-    { id: 5, patient: 'Laura Sánchez', doctor: 'Dra. María López', date: '2025-05-12', time: '10:00 AM', status: 'pending', service: 'Ortodoncia', timeToHuman: 'Ayer' },
-    { id: 6, patient: 'Pedro Ramírez', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-12', time: '11:30 AM', status: 'completed', service: 'Limpieza Dental', timeToHuman: 'Ayer' },
-    { id: 7, patient: 'Isabel Torres', doctor: 'Dr. Juan Pérez', date: '2025-05-11', time: '09:00 AM', status: 'pending', service: 'Consulta General', timeToHuman: 'Antier' },
-    { id: 8, patient: 'Miguel Flores', doctor: 'Dra. María López', date: '2025-05-11', time: '10:30 AM', status: 'cancelled', service: 'Extracción', timeToHuman: 'Antier' },
-    { id: 9, patient: 'Carmen Ruiz', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-11', time: '11:00 AM', status: 'completed', service: 'Ortodoncia', timeToHuman: 'Antier' },
-    { id: 10, patient: 'Daniel Morales', doctor: 'Dr. Juan Pérez', date: '2025-05-10', time: '09:30 AM', status: 'pending', service: 'Limpieza Dental', timeToHuman: 'Hace 3 días' },
-    { id: 11, patient: 'Isabel Jiménez', doctor: 'Dra. María López', date: '2025-05-10', time: '10:00 AM', status: 'completed', service: 'Consulta General', timeToHuman: 'Hace 3 días' },
-    { id: 12, patient: 'Roberto Vargas', doctor: 'Dr. Carlos Rodríguez', date: '2025-05-10', time: '11:30 AM', status: 'cancelled', service: 'Extracción', timeToHuman: 'Hace 3 días' }
-];
-
-// Variables para la paginación
-const itemsPerPage = 5;
+// Variables para los datos y paginación
+let appointmentsData = [];
+const itemsPerPage = 10;
 let currentPage = 1;
-let filteredData = [...appointmentsData];
+let filteredData = [];
+
+// Variables para estadísticas
+let statsData = {
+    total_month: 0,
+    pending: 0
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     // Variables para el rango de fechas en la sección superior
@@ -330,12 +321,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!tableBody) return;
 
     tableBody.innerHTML = '';
-    
+
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
-    const paginatedData = filteredData.slice(start, end);
-    
-    if (paginatedData.length === 0) {
+    const visibleItems = filteredData.slice(start, end);
+
+    if (visibleItems.length === 0) {
         const emptyRow = document.createElement('tr');
         emptyRow.innerHTML = `
             <td colspan="8" class="empty-message">
@@ -612,19 +603,86 @@ document.addEventListener('DOMContentLoaded', function() {
     renderAppointments();
     updatePagination();
     
-    function updateData() {
-        // This would typically fetch data from the server based on the selected date range
-        // For demo purposes, we'll just log the current selection
-        const startDateText = document.getElementById('startDateValue').textContent;
-        const endDateText = document.getElementById('endDateValue').textContent;
-        console.log(`Fetching appointment data from ${startDateText} to ${endDateText}`);
+    // Función para cargar los datos de citas desde el servidor
+    function loadAppointmentData() {
+        // Mostrar indicador de carga
+        document.querySelector('.loading').style.display = 'block';
+        document.querySelector('.appointments-table').style.display = 'none';
         
-        // Refresh the table data based on the selected date range
-        // En una aplicación real, aquí se haría una llamada AJAX para obtener los datos filtrados
-        // Por ahora, simplemente reiniciamos los filtros y mostramos todos los datos
-        filteredData = [...appointmentsData];
-        currentPage = 1;
-        updatePagination();
-        renderAppointments();
+        // Obtener las fechas de filtrado
+        const dateFrom = document.querySelector('input[name="date_from"]').value;
+        const dateTo = document.querySelector('input[name="date_to"]').value;
+        
+        console.log(`Cargando citas desde ${dateFrom} hasta ${dateTo}`);
+        
+        // Preparar el token CSRF para la petición
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        // Hacer la petición al servidor
+        fetch('/api/appointment-history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                date_from: dateFrom,
+                date_to: dateTo
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos recibidos:', data);
+            
+            if (data.success) {
+                // Actualizar los datos de citas
+                appointmentsData = data.data.appointments;
+                filteredData = [...appointmentsData];
+                
+                // Actualizar estadísticas
+                if (data.data.stats) {
+                    updateStats(data.data.stats);
+                }
+                
+                // Actualizar la tabla
+                currentPage = 1;
+                updatePagination();
+                renderAppointments();
+                
+                // Ocultar indicador de carga y mostrar tabla
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('.appointments-table').style.display = 'table';
+            } else {
+                console.error('Error al cargar los datos:', data.message);
+                document.querySelector('.loading').style.display = 'none';
+                // Mostrar mensaje de error
+                showErrorMessage('Error al cargar los datos de citas');
+            }
+        })
+        .catch(error => {
+            console.error('Error en la petición:', error);
+            document.querySelector('.loading').style.display = 'none';
+            // Mostrar mensaje de error
+            showErrorMessage('Error de conexión al cargar las citas');
+        });
+    }
+    
+    // Función para actualizar las estadísticas en la UI
+    function updateStats(stats) {
+        if (document.getElementById('total-month')) {
+            document.getElementById('total-month').textContent = stats.total_month;
+        }
+        if (document.getElementById('pending-appointments')) {
+            document.getElementById('pending-appointments').textContent = stats.pending;
+        }
+    }
+    
+    // Función para mostrar mensajes de error
+    function showErrorMessage(message) {
+        const tableBody = document.querySelector('#appointmentsTable tbody');
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="8" class="error-message">${message}</td></tr>`;
+            document.querySelector('.appointments-table').style.display = 'table';
+        }
     }
 });

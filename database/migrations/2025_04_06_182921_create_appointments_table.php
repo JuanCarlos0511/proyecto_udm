@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('modality', ['Consultorio', 'Domicilio'])->default('Consultorio');
             $table->unsignedBigInteger('appointment_group_id')->nullable(); // Sin restricción de clave foránea por ahora
             $table->decimal('price', 5, 2);
+            
             $table->timestamps();
         });
     }

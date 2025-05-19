@@ -10,6 +10,17 @@ function initializeElements() {
     // Inicializar botones de filtro por estado
     initializeFilterButtons();
     
+    // Inicializar botones de aceptar cita
+    document.querySelectorAll('.btn-accept').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const appointmentId = this.getAttribute('data-id');
+            if (appointmentId) {
+                acceptAppointment(appointmentId);
+            }
+        });
+    });
+    
     // Inicializar el modal (si Bootstrap está disponible)
     if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         // Si usamos Bootstrap para los modales
@@ -93,35 +104,96 @@ function toggleAppointmentDetails(appointmentId) {
  * Aceptar una cita (cambiar su estado a "Agendado")
  */
 function acceptAppointment(appointmentId) {
-    if (!confirm('¿Desea aceptar esta cita?')) return;
     
     // Obtener el token CSRF
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     
-    fetch(`/admin/citas/${appointmentId}/accept`, {
-        method: 'POST',
+    // Construir la URL base
+    const baseURL = window.location.origin;
+    const endpoint = `/admin/citas/${appointmentId}/accept`;
+    const url = `${baseURL}${endpoint}`;
+    
+    // Deshabilitar el botón mientras se procesa
+    const acceptButton = document.querySelector(`button.btn-accept[data-id="${appointmentId}"]`);
+    if (acceptButton) {
+        acceptButton.disabled = true;
+        acceptButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    }
+    
+    console.log('Enviando petición PUT a:', url);
+    
+    fetch(url, {
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-CSRF-TOKEN': csrfToken
         },
+        body: JSON.stringify({
+            appointment_id: appointmentId,
+            status: 'Agendado'
+        })
     })
     .then(response => {
+        console.log('Respuesta recibida:', response.status);
         if (!response.ok) {
-            throw new Error('Error al aceptar la cita');
+            throw new Error(`Error en la respuesta: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        // Mostrar mensaje de éxito
-        alert('Cita aceptada correctamente');
+        console.log('Datos recibidos:', data);
         
-        // Recargar la página para reflejar los cambios
-        window.location.reload();
+        // Mostrar mensaje de éxito
+        if (typeof toastr !== 'undefined') {
+            toastr.success(data.message || 'Cita aceptada correctamente');
+        } else {
+            alert(data.message || 'Cita aceptada correctamente');
+        }
+        
+        // Actualizar el estado en la UI
+        const statusCell = document.querySelector(`tr[data-id="${appointmentId}"] .appointment-status`);
+        if (statusCell) {
+            statusCell.innerHTML = '<i class="status-icon fas fa-check-circle"></i> Agendado';
+            statusCell.className = 'appointment-status status-agendado';
+        }
+        
+        // Ocultar el botón de aceptar
+        if (acceptButton) {
+            acceptButton.style.display = 'none';
+        }
+        
+        // Actualizar otros elementos relacionados si es necesario
+        const relatedAppointments = document.querySelectorAll(`tr[data-group="${data.appointment.appointment_group_id}"]`);
+        relatedAppointments.forEach(row => {
+            const status = row.querySelector('.appointment-status');
+            if (status) {
+                status.innerHTML = '<i class="status-icon fas fa-check-circle"></i> Agendado';
+                status.className = 'appointment-status status-agendado';
+            }
+            
+            // Ocultar botones de aceptar en citas relacionadas
+            const acceptBtn = row.querySelector('.btn-accept');
+            if (acceptBtn) {
+                acceptBtn.style.display = 'none';
+            }
+        });
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error al aceptar la cita: ' + error.message);
+        
+        // Mostrar mensaje de error
+        if (typeof toastr !== 'undefined') {
+            toastr.error(`Error al aceptar la cita: ${error.message}`);
+        } else {
+            alert(`Error al aceptar la cita: ${error.message}`);
+        }
+        
+        // Restaurar el botón en caso de error
+        if (acceptButton) {
+            acceptButton.disabled = false;
+            acceptButton.innerHTML = '<i class="fas fa-check"></i> Aceptar';
+        }
     });
 }
 
@@ -130,7 +202,7 @@ function acceptAppointment(appointmentId) {
  */
 function showStartAppointmentModal(appointmentId) {
     // Recuperar datos de la cita
-    fetch(`/admin/citas/${appointmentId}`)
+    fetch(`/admin/citas/${appointmentId}/start-data`)
         .then(response => response.json())
         .then(data => {
             // Rellenar los datos del paciente en el modal
@@ -526,24 +598,28 @@ function updateAppointment(appointmentId, form) {
     event.preventDefault();
     event.stopPropagation();
     
+    // Recoger todos los campos del formulario
     const formData = new FormData(form);
     const date = formData.get('date');
     const time = formData.get('time');
     const doctorId = formData.get('doctor_id');
+    const subject = formData.get('subject');
+    const modality = formData.get('modality');
+    const price = formData.get('price');
     
-    // Como estamos teniendo problemas con la URL, usamos la URL actual donde estamos
-    // en lugar de intentar construir una URL específica para cada cita
+    // URL para la actualización
     const baseURL = window.location.origin;
-    const url = `${baseURL}/admin/tablero/citas-todas`; // Usar la ruta donde estamos actualmente
-    console.log(`Usando URL de la vista actual: ${url}`);
+    const url = `${baseURL}/admin/tablero/citas-todas`; 
+    console.log(`Enviando actualización a: ${url}`);
     
-    // Usar XMLHttpRequest en lugar de fetch para mayor control
+    // Preparar la solicitud
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', url, true);
     xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader('Accept', 'application/json');
     
+    // Configurar el manejador de respuesta
     xhr.onload = function() {
         console.log('Respuesta recibida:', xhr.status, xhr.statusText);
         console.log('Respuesta completa:', xhr.responseText);
@@ -553,9 +629,15 @@ function updateAppointment(appointmentId, form) {
                 const data = JSON.parse(xhr.responseText);
                 console.log('Datos recibidos:', data);
                 if (data.message) {
-                    alert(data.message);
+                    // Mostrar mensaje de éxito al usuario
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(data.message);
+                    } else {
+                        alert(data.message);
+                    }
+                    
                     if (data.appointment) {
-                        // En lugar de recargar toda la página, actualizar solo los datos necesarios
+                        // Actualizar la UI sin recargar la página
                         updateAppointmentRow(data.appointment);
                         
                         // Cerrar el formulario de edición
@@ -564,31 +646,199 @@ function updateAppointment(appointmentId, form) {
                             editForm.remove();
                         }
                         
-                        // Re-inicializar los eventos de citas
+                        // Re-inicializar los eventos
                         initializeAppointmentEvents();
+                        
+                        // Volver a aplicar el filtro actual
+                        const activeFilter = document.querySelector('.btn-filter.active');
+                        if (activeFilter) {
+                            const status = activeFilter.getAttribute('data-status');
+                            filterAppointmentsByStatus(status);
+                        }
                     }
                 }
             } catch (e) {
                 console.error('Error al procesar la respuesta JSON:', e);
-                alert('Respuesta recibida pero no es JSON válido');
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Error al actualizar la cita');
+                } else {
+                    alert('Error al actualizar la cita');
+                }
             }
         } else {
             console.error('Error en la respuesta:', xhr.status, xhr.statusText);
-            alert(`Error al actualizar la cita: ${xhr.status} ${xhr.statusText}`);
+            if (typeof toastr !== 'undefined') {
+                toastr.error(`Error al actualizar la cita: ${xhr.status}`);
+            } else {
+                alert(`Error al actualizar la cita: ${xhr.status} ${xhr.statusText}`);
+            }
         }
     };
     
     xhr.onerror = function() {
         console.error('Error de red en la solicitud');
-        alert('Error de red al intentar actualizar la cita');
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Error de conexión al actualizar la cita');
+        } else {
+            alert('Error de red al intentar actualizar la cita');
+        }
     };
     
-    const data = JSON.stringify({
+    // Crear el objeto de datos completo con todos los campos editables
+    const payload = {
         appointment_id: appointmentId,
         date: `${date} ${time}`,
         doctor_id: doctorId
+    };
+    
+    // Añadir campos opcionales solo si tienen valor
+    if (subject) payload.subject = subject;
+    if (modality) payload.modality = modality;
+    if (price) payload.price = price;
+    
+    console.log('Enviando datos:', payload);
+    xhr.send(JSON.stringify(payload));
+}
+
+/**
+ * Nueva función específica para actualizar citas desde el buzón
+ * Esta función captura correctamente el evento de envío del formulario
+ * y realiza una petición PUT adecuada sin interferir con otras partes del sistema
+ */
+function updateAppointmentInbox(appointmentId, formElement) {
+    console.log('Iniciando updateAppointmentInbox para cita ID:', appointmentId);
+    console.log('Form element:', formElement);
+    
+    // Prevenir el comportamiento predeterminado del formulario
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Obtener token CSRF
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    if (!token) {
+        console.error('No se encontró el token CSRF');
+        alert('Error: No se pudo encontrar el token CSRF. Por favor, recargue la página e intente nuevamente.');
+        return;
+    }
+    
+    // Recoger todos los datos del formulario
+    const formData = new FormData(formElement);
+    
+    // Crear un objeto con todos los campos del formulario
+    const date = formData.get('date') || '';
+    const time = formData.get('time') || '';
+    const subject = formData.get('subject') || '';
+    const modality = formData.get('modality') || '';
+    const price = formData.get('price') || '';
+    // Es importante enviar doctor_id (que realmente es user_id del doctor) incluso si es vacío
+    // para poder eliminar asignaciones existentes
+    const doctorId = formData.get('doctor_id');
+    console.log('Doctor ID seleccionado:', doctorId);
+    
+    // Mostrar en la consola para depuración
+    console.log('Datos recogidos del formulario:', {
+        appointment_id: appointmentId,
+        date: date,
+        time: time,
+        subject: subject,
+        modality: modality,
+        price: price,
+        doctor_id: doctorId
     });
     
-    console.log('Enviando datos:', data);
-    xhr.send(data);
+    // Mostrar indicador de carga en el botón
+    const submitBtn = formElement.querySelector('button[type="button"].btn-primary');
+    if (submitBtn) {
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        submitBtn.disabled = true;
+    }
+    
+    // Construir la URL para la API
+    const baseURL = window.location.origin;
+    const endpoint = '/admin/tablero/citas-todas';
+    const url = `${baseURL}${endpoint}`;
+    
+    console.log('Enviando petición PUT a:', url);
+    
+    // Crear un objeto Date con la fecha y hora seleccionadas
+    let combinedDateTime = null;
+    if (date) {
+        // Si no hay hora seleccionada, usar la hora actual
+        const timeToUse = time || new Date().toTimeString().slice(0,5);
+        // Crear una fecha ISO combinando la fecha y hora
+        combinedDateTime = new Date(`${date}T${timeToUse}`).toISOString();
+        console.log('Fecha y hora combinada:', combinedDateTime);
+    }
+
+    // Crear payload con todos los datos necesarios
+    const payload = {
+        appointment_id: appointmentId,
+        date: combinedDateTime, // Usar la fecha y hora combinada en formato ISO
+        doctor_id: doctorId
+    };
+    
+    // Añadir campos opcionales solo si tienen valor
+    if (subject) payload.subject = subject;
+    if (modality) payload.modality = modality;
+    if (price) payload.price = price;
+    
+    // Realizar petición con Fetch API
+    fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': token
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        console.log('Respuesta recibida:', response.status);
+        if (!response.ok) {
+            throw new Error(`Error en la respuesta: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Datos recibidos:', data);
+        
+        // Mostrar mensaje de éxito
+        if (typeof toastr !== 'undefined') {
+            toastr.success(data.message || 'Cita actualizada correctamente');
+        } else {
+            alert(data.message || 'Cita actualizada correctamente');
+        }
+        
+        // Cerrar el formulario de edición
+        const detailsRow = document.getElementById(`details-${appointmentId}`);
+        if (detailsRow) {
+            detailsRow.style.display = 'none';
+        }
+        
+        // Actualizar el UI sin recargar la página
+        if (data.appointment) {
+            // También podríamos optar por recargar la página después de un breve retraso
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        
+        // Mostrar mensaje de error
+        if (typeof toastr !== 'undefined') {
+            toastr.error(`Error al actualizar la cita: ${error.message}`);
+        } else {
+            alert(`Error al actualizar la cita: ${error.message}`);
+        }
+    })
+    .finally(() => {
+        // Restaurar el botón
+        if (submitBtn) {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
 }

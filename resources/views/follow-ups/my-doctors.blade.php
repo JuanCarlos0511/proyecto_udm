@@ -236,30 +236,30 @@
         @if(isset($followUps) && $followUps->count() > 0)
             <div class="doctors-grid">
                 @foreach($followUps as $followUp)
-                    <div class="doctor-card" data-doctor-id="{{ $followUp->doctor->id }}">
+                    <div class="doctor-card" data-doctor-id="{{ $followUp->user && isset($followUp->user->id) ? $followUp->user->id : '' }}">
                         <div class="doctor-header">
                             <div class="doctor-avatar">
-                                @if($followUp->doctor->photo_path)
-                                    <img src="{{ asset($followUp->doctor->photo_path) }}" alt="{{ $followUp->doctor->name }}">
+                                @if(isset($followUp->user) && $followUp->user && $followUp->user->photo_path)
+                                    <img src="{{ asset('storage/' . $followUp->user->photo_path) }}" alt="{{ $followUp->user->name ?? 'Doctor' }}">
                                 @else
-                                    <img src="{{ asset('assets/default-doctor.png') }}" alt="{{ $followUp->doctor->name }}">
+                                    <img src="{{ asset('assets/default-doctor.png') }}" alt="{{ isset($followUp->user) ? $followUp->user->name ?? 'Doctor' : 'Doctor' }}">
                                 @endif
                             </div>
                         </div>
                         <div class="doctor-body">
-                            <h3 class="doctor-name">{{ $followUp->doctor->name }}</h3>
+                            <h3 class="doctor-name">{{ $followUp->user->name ?? 'Doctor' }}</h3>
                             <p class="doctor-specialty">Doctor</p>
                             <p class="follow-since">En seguimiento desde {{ $followUp->start_date->format('d/m/Y') }}</p>
                             
                             <div class="doctor-info">
                                 <div class="info-item">
                                     <i class="fas fa-envelope"></i>
-                                    <span>{{ $followUp->doctor->email }}</span>
+                                    <span>{{ isset($followUp->user) && $followUp->user ? $followUp->user->email ?? 'No disponible' : 'No disponible' }}</span>
                                 </div>
-                                @if($followUp->doctor->phoneNumber)
+                                @if(isset($followUp->user) && $followUp->user && isset($followUp->user->phoneNumber))
                                     <div class="info-item">
                                         <i class="fas fa-phone"></i>
-                                        <span>{{ $followUp->doctor->phoneNumber }}</span>
+                                        <span>{{ $followUp->user->phoneNumber }}</span>
                                     </div>
                                 @endif
                                 @if($followUp->notes)
@@ -268,15 +268,6 @@
                                         <span>{{ \Illuminate\Support\Str::limit($followUp->notes, 50) }}</span>
                                     </div>
                                 @endif
-                            </div>
-                            
-                            <div class="doctor-actions">
-                                <a href="{{ route('appointment.clinic') }}?doctor_id={{ $followUp->doctor->id }}" class="doctor-btn btn-primary">
-                                    <i class="fas fa-calendar-plus"></i> Agendar Cita
-                                </a>
-                                <a href="{{ url('seguimiento', $followUp->id) }}" class="doctor-btn btn-secondary">
-                                    <i class="fas fa-eye"></i> Ver Detalles
-                                </a>
                             </div>
                         </div>
                     </div>

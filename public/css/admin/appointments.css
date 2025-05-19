@@ -40,19 +40,19 @@
 }
 
 .bg-primary {
-    background-color: #6c5dd3;
+    background-color: #3498db;
 }
 
 .bg-success {
-    background-color: #28a745;
+    background-color: #2ecc71;
 }
 
 .bg-danger {
-    background-color: #dc3545;
+    background-color: #e74c3c;
 }
 
 .bg-info {
-    background-color: #17a2b8;
+    background-color: #9b59b6;
 }
 
 .stat-content h3 {
@@ -340,6 +340,9 @@
 .btn-view {
     color: #17a2b8;
     background-color: rgba(23, 162, 184, 0.1);
+    min-width: 110px;  /* Asegura que el botón tenga un ancho mínimo suficiente */
+    padding: 8px 16px; /* Aumenta el padding horizontal */
+    text-align: center; /* Centra el texto */
 }
 
 .btn-view:hover {
@@ -382,7 +385,7 @@
 .btn-start {
     color: #ffffff;
     background-color: #3498db;
-    padding: 8px 15px;
+    padding: 8px 20px;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
@@ -392,6 +395,9 @@
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
     border: none;
+    min-width: 110px;
+    justify-content: center;
+    white-space: nowrap;
 }
 
 .btn-start:hover {

@@ -106,19 +106,35 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background-color: #f5f6fa;
-    border-radius: 8px;
-    padding: 10px 15px;
+    background-color: #f8f9fe;
+    border-radius: 10px;
+    padding: 10px 16px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.3s;
+    border: 1px solid #e6e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .date-picker:hover {
-    background-color: #eef0f7;
+    background-color: #f0f2fa;
+    border-color: #d8daed;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
 .date-picker-icon {
     color: #6c5dd3;
+}
+
+.date-input {
+    border: none;
+    background: none;
+    font-size: 14px;
+    color: #333;
+    width: 100%;
+    outline: none;
+    padding: 5px 0;
+    font-family: inherit;
 }
 
 .date-picker-value {
@@ -211,19 +227,65 @@
     font-weight: 500;
 }
 
-.status-paid {
+.status-realizada {
     background-color: rgba(52, 168, 83, 0.1);
     color: #34A853;
 }
 
-.status-pending {
+.status-pendiente {
     background-color: rgba(251, 188, 5, 0.1);
     color: #FBBC05;
 }
 
-.status-overdue {
-    background-color: rgba(234, 67, 53, 0.1);
-    color: #EA4335;
+/* Estilos para el botón de filtro */
+.filter-button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6c5dd3, #5046e4);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 8px rgba(80, 70, 228, 0.25);
+}
+
+.filter-button:hover {
+    background: linear-gradient(135deg, #5a4cbe, #4037c7);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(80, 70, 228, 0.3);
+}
+
+/* Estilos para botón de terminado */
+.complete-button {
+    background-color: #6c5dd3;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 5px rgba(108, 93, 211, 0.3);
+}
+
+.complete-button:hover {
+    background-color: #5a4cbe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 93, 211, 0.4);
+}
+
+.complete-button i {
+    font-size: 12px;
 }
 
 .bill-actions {

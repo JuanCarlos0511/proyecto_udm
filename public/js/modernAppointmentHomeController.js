@@ -1,25 +1,27 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Elements
+    // DOM Elements
+    const backButton = document.getElementById('backToHome');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const currentMonthElement = document.getElementById('currentMonth');
+    const prevMonthButton = document.getElementById('prevMonth');
+    const nextMonthButton = document.getElementById('nextMonth');
     const dateSelectBtn = document.getElementById('dateSelectBtn');
     const timeSelectBtn = document.getElementById('timeSelectBtn');
-    const calendarPopup = document.getElementById('calendarPopup');
     const timePopup = document.getElementById('timePopup');
-    const calendarGrid = document.getElementById('calendarGrid');
-    const timeSlots = document.getElementById('timeSlots');
-    const prevMonthBtn = document.getElementById('prevMonth');
-    const nextMonthBtn = document.getElementById('nextMonth');
-    const currentMonthEl = document.getElementById('currentMonth');
+    const calendarPopup = document.getElementById('calendarPopup');
+    const timeSlotsContainer = document.getElementById('timeSlots');
     const selectedDateEl = document.getElementById('selectedDate');
     const selectedTimeEl = document.getElementById('selectedTime');
-    const scheduleBtn = document.getElementById('scheduleBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
+    const cancelButton = document.getElementById('cancelBtn');
+    const submitButton = document.getElementById('scheduleBtn');
     const confirmationModal = document.getElementById('confirmationModal');
-    const goToHomeBtn = document.getElementById('goToHome');
-    const goToHistoryBtn = document.getElementById('goToHistory');
+    const goToHomeButton = document.getElementById('goToHome');
+    const goToHistoryButton = document.getElementById('goToHistory');
     const padecimientoRadios = document.querySelectorAll('input[name="padecimiento"]');
     const padecimientoDetails = document.getElementById('padecimientoDetails');
     const appointmentForm = document.getElementById('modernAppointmentHomeForm');
-    const backToHomeBtn = document.getElementById('backToHome');
+    
+    console.log('Inicializando controlador de citas a domicilio');
 
     // State
     let currentDate = new Date();
@@ -88,8 +90,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Autofill form if user is authenticated
         const isAuthenticated = document.getElementById('isAuthenticated');
         if (isAuthenticated && isAuthenticated.value === '1') {
-            const userData = JSON.parse(document.getElementById('userData').value);
-            autofillForm(userData);
+            try {
+                const userDataElement = document.getElementById('userData');
+                if (userDataElement) {
+                    const userData = JSON.parse(userDataElement.value);
+                    console.log('Datos de usuario encontrados:', userData);
+                    autofillForm(userData);
+                } else {
+                    console.error('Elemento userData no encontrado');
+                }
+            } catch (error) {
+                console.error('Error al procesar datos de usuario:', error);
+            }
+        } else {
+            console.log('Usuario no autenticado o valor incorrecto');
         }
     }
 
@@ -198,34 +212,83 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            calendarGrid.appendChild(dayCell);
         }
+        
+        calendarGrid.appendChild(dayCell);
     }
+}
 
-    function renderTimeSlots() {
-        // Clear time slots
-        timeSlots.innerHTML = '';
+function renderTimeSlots() {
+    // Clear time slots
+    timeSlots.innerHTML = '';
+    
+    // Available time slots (9:00 AM to 5:00 PM)
+    // Para citas a domicilio, ofrecemos horarios más limitados
+    const allTimeSlots = [
+       '9:00', '9:30', '10:00', '10:30', '11:00', '11:30', 
+        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', 
+        '15:00', '15:30', '16:00', '16:30', '17:00'
+    ];
+    
+    // Determinar slots disponibles basado en la hora actual
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Verificar si la fecha seleccionada es hoy
+    const isToday = selectedDate && 
+        selectedDate.getDate() === now.getDate() && 
+        selectedDate.getMonth() === now.getMonth() && 
+        selectedDate.getFullYear() === now.getFullYear();
+    
+    // Siguiente hora completa
+    const nextHour = currentHour + 1;
+    // Siguiente hora de la siguiente (hora actual + 2)
+    const minAvailableHour = currentHour + 2;
+    
+    console.log('Hora actual:', currentHour, 'Minutos:', currentMinute);
+    console.log('Hora mínima disponible:', minAvailableHour);
+    
+    // Render time slots
+    allTimeSlots.forEach(time => {
+        const timeSlot = document.createElement('div');
+        timeSlot.classList.add('time-slot');
+        timeSlot.textContent = time;
         
-        // Example time slots (9:00 AM to 5:00 PM)
-        // Para citas a domicilio, ofrecemos horarios más limitados
-        const availableTimeSlots = [
-           '9:00', '9:30', '10:00', '10:30', '11:00', '11:30', 
-            '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', 
-            '15:00', '15:30', '16:00', '16:30', '17:00'
-        ];
+        // Extraer la hora del string (ej: '9:00' -> 9, '13:30' -> 13)
+        const slotHour = parseInt(time.split(':')[0]);
+        const slotMinute = parseInt(time.split(':')[1]);
         
-        // Render time slots
-        availableTimeSlots.forEach(time => {
-            const timeSlot = document.createElement('div');
-            timeSlot.classList.add('time-slot');
-            timeSlot.textContent = time;
+        // Determinar si este horario está disponible
+        let isAvailable = true;
+        
+        // Si es el día de hoy, verificar la hora
+        if (isToday) {
+            // Convertir todas las horas a minutos para comparar más fácilmente
+            const slotTotalMinutes = (slotHour * 60) + slotMinute;
+            const currentTotalMinutes = (currentHour * 60) + currentMinute;
+            const minAvailableTotalMinutes = ((currentHour + 2) * 60); // Hora actual + 2 horas en minutos
             
-            // Check if this is the selected time
-            if (selectedTime === time) {
-                timeSlot.classList.add('selected');
+            // Asegurarse que el slot sea al menos 2 horas después de la hora actual
+            if (slotTotalMinutes < minAvailableTotalMinutes) {
+                isAvailable = false;
+                console.log('Slot no disponible:', time, 'Minutos totales:', slotTotalMinutes, 'Mínimo requerido:', minAvailableTotalMinutes);
+            } else {
+                console.log('Slot disponible:', time, 'Minutos totales:', slotTotalMinutes, 'Mínimo requerido:', minAvailableTotalMinutes);
             }
-            
-            // Add click event
+        }
+        
+        // Check if this is the selected time
+        if (selectedTime === time) {
+            timeSlot.classList.add('selected');
+        }
+        
+        // Aplicar estilo si no está disponible
+        if (!isAvailable) {
+            timeSlot.classList.add('disabled');
+            timeSlot.title = 'Este horario no está disponible para agendar';
+        } else {
+            // Add click event solo para horarios disponibles
             timeSlot.addEventListener('click', function() {
                 // Remove selected class from all time slots
                 document.querySelectorAll('.time-slot.selected').forEach(el => {
@@ -242,15 +305,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Close time popup
                 timePopup.classList.remove('active');
             });
-            
-            timeSlots.appendChild(timeSlot);
-        });
-    }
-
-    function updateSelectedDateDisplay() {
-        if (selectedDate) {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            selectedDateEl.textContent = selectedDate.toLocaleDateString('es-ES', options);
             selectedDateEl.parentElement.style.display = 'block';
             
             // Enable time selection button

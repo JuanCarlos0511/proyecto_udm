@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Bill;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class BillingController extends Controller
 {
@@ -32,27 +31,31 @@ class BillingController extends Controller
             'status' => 'pendiente'
         ]);
 
-        // Obtener información del paciente
+        // Obtener información del paciente para referencia
         $patient = User::findOrFail($request->user_id);
-
-        // Generar PDF
-        $pdf = PDF::loadView('admin.billing.pdf-template', [
-            'bill' => $bill,
-            'patient' => $patient
-        ]);
-
-        // Guardar el PDF en storage
-        $pdfPath = 'bills/' . $bill->id . '.pdf';
-        \Storage::put('public/' . $pdfPath, $pdf->output());
-
-        // Actualizar la factura con la ruta del PDF
-        $bill->update(['pdf_path' => $pdfPath]);
+        
+        // La factura ya se guardó con status 'pendiente' por defecto
+        // El cambio a 'realizada' se hará mediante un botón en la interfaz
 
         return response()->json([
             'success' => true,
-            'message' => 'Factura generada correctamente',
-            'bill_id' => $bill->id,
-            'pdf_url' => asset('storage/' . $pdfPath)
+            'message' => 'Factura registrada correctamente',
+            'bill_id' => $bill->id
+        ]);
+    }
+    
+    /**
+     * Actualiza el estado de una factura a 'realizada'
+     */
+    public function markAsCompleted(Request $request, $id)
+    {
+        $bill = Bill::findOrFail($id);
+        $bill->update(['status' => 'realizada']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado de factura actualizado a realizada',
+            'bill_id' => $bill->id
         ]);
     }
 }

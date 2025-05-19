@@ -24,7 +24,7 @@
                             <i class="fas fa-calendar-check"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-value">64</div>
+                            <div class="stat-value" id="total-month">0</div>
                             <div class="stat-label">Total Citas Este Mes</div>
                         </div>
                     </div>
@@ -33,47 +33,46 @@
                             <i class="fas fa-calendar-day"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-value">28</div>
+                            <div class="stat-value" id="pending-appointments">0</div>
                             <div class="stat-label">Citas Pendientes</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="date-range-section">
-                <div class="date-range-container">
-                    <div class="date-picker-container">
-                        <div class="date-picker-label">From</div>
-                        <div class="date-picker" id="startDatePicker">
-                            <i class="fas fa-calendar-alt date-picker-icon"></i>
-                            <span class="date-picker-value" id="startDateValue">Jan 2022</span>
+                <form action="{{ route('admin.appointments.history') }}" method="GET" class="date-filter-form">
+                    <div class="date-range-container">
+                        <div class="date-picker-container">
+                            <div class="date-picker-label">Desde</div>
+                            <div class="date-picker">
+                                <i class="fas fa-calendar-alt date-picker-icon"></i>
+                                <input type="date" name="date_from" value="{{ $defaultStartDate ?? '2025-01-01' }}" class="date-input">
+                            </div>
+                        </div>
+                        <div class="date-picker-container">
+                            <div class="date-picker-label">Hasta</div>
+                            <div class="date-picker">
+                                <i class="fas fa-calendar-alt date-picker-icon"></i>
+                                <input type="date" name="date_to" value="{{ $defaultEndDate ?? '2025-12-31' }}" class="date-input">
+                            </div>
+                        </div>
+                        <div class="date-picker-container">
+                            <button type="submit" class="filter-button">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
                         </div>
                     </div>
-                    <div class="date-picker-container">
-                        <div class="date-picker-label">To</div>
-                        <div class="date-picker" id="endDatePicker">
-                            <i class="fas fa-calendar-alt date-picker-icon"></i>
-                            <span class="date-picker-value" id="endDateValue">Sep 2022</span>
-                        </div>
-                    </div>
-                </div>
+
+                </form>
             </div>
         </div>
+        
+        <div class="loading" style="display: none;">
+            <i class="fas fa-spinner"></i> Cargando datos...
+        </div>
+        
         <div class="appointments-section">
-            <div class="appointments-header">
-                <h2 class="appointments-title">Historial de Citas</h2>
-                <div class="appointments-actions">
-                    <div class="appointments-filter" id="openFilterModal">
-                        <i class="fas fa-filter appointments-filter-icon"></i>
-                        <span class="appointments-filter-text">Filtrar</span>
-                    </div>
-                    <div class="active-filters" id="activeFilters" style="display: none;">
-                        <span class="filter-badge" id="statusFilterBadge" style="display: none;">Estado: <span class="filter-value"></span> <i class="fas fa-times remove-filter"></i></span>
-                        <span class="filter-badge" id="doctorFilterBadge" style="display: none;">Doctor: <span class="filter-value"></span> <i class="fas fa-times remove-filter"></i></span>
-                        <span class="filter-badge" id="dateFilterBadge" style="display: none;">Fecha: <span class="filter-value"></span> <i class="fas fa-times remove-filter"></i></span>
-                    </div>
-                </div>
-            </div>
-            
+           
             <!-- Modal de filtrado -->
             <div class="filter-modal" id="filterModal" style="display: none;">
                 <div class="filter-modal-content">
@@ -102,11 +101,15 @@
                         
                         <div class="filter-group">
                             <label class="filter-label">Doctor</label>
-                            <select class="filter-select" id="doctorFilter">
+                            <select class="filter-select" id="doctorFilter" name="doctor_id">
                                 <option value="">Todos los doctores</option>
-                                <option value="1">Dr. Juan Pérez</option>
-                                <option value="2">Dra. María López</option>
-                                <option value="3">Dr. Carlos Rodríguez</option>
+                                @if(isset($doctors) && $doctors->count() > 0)
+                                    @foreach($doctors as $doctor)
+                                    <option value="{{ $doctor->id }}" {{ request('doctor_id') == $doctor->id ? 'selected' : '' }}>
+                                        {{ $doctor->name }}
+                                    </option>
+                                    @endforeach
+                                @endif
                             </select>
                         </div>
                         
@@ -133,140 +136,47 @@
             <table class="appointments-table">
                 <thead>
                     <tr>
-                        <th class="checkbox-cell">
-                            <div class="custom-checkbox" id="selectAll"></div>
-                        </th>
-                        <th>#</th>
+                        <th>ID</th>
                         <th>Paciente</th>
                         <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Servicio</th>
+                        <th>Asunto</th>
                         <th>Estado</th>
+                        <th>Modalidad</th>
+                        <th>Precio</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td class="checkbox-cell">
-                            <div class="custom-checkbox"></div>
-                        </td>
-                        <td>#APT-001</td>
-                        <td>María González</td>
-                        <td>24 Ago 2022</td>
-                        <td>10:00 AM</td>
-                        <td>Consulta General</td>
-                        <td><span class="appointment-status status-completed">Completada</span></td>
-                        <td>
-                            <div class="appointment-actions">
-                                <div class="action-button">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell">
-                            <div class="custom-checkbox"></div>
-                        </td>
-                        <td>#APT-002</td>
-                        <td>Carlos Rodríguez</td>
-                        <td>25 Ago 2022</td>
-                        <td>11:30 AM</td>
-                        <td>Limpieza Dental</td>
-                        <td><span class="appointment-status status-pending">Pendiente</span></td>
-                        <td>
-                            <div class="appointment-actions">
-                                <div class="action-button">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell">
-                            <div class="custom-checkbox"></div>
-                        </td>
-                        <td>#APT-003</td>
-                        <td>Ana Martínez</td>
-                        <td>26 Ago 2022</td>
-                        <td>2:00 PM</td>
-                        <td>Extracción</td>
-                        <td><span class="appointment-status status-cancelled">Cancelada</span></td>
-                        <td>
-                            <div class="appointment-actions">
-                                <div class="action-button">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell">
-                            <div class="custom-checkbox"></div>
-                        </td>
-                        <td>#APT-004</td>
-                        <td>José López</td>
-                        <td>27 Ago 2022</td>
-                        <td>9:00 AM</td>
-                        <td>Consulta General</td>
-                        <td><span class="appointment-status status-completed">Completada</span></td>
-                        <td>
-                            <div class="appointment-actions">
-                                <div class="action-button">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="action-button">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell">
-                            <div class="custom-checkbox"></div>
-                        </td>
-                        <td>#APT-005</td>
-                        <td>Laura Sánchez</td>
-                        <td>28 Ago 2022</td>
-                        <td>3:30 PM</td>
-                        <td>Ortodoncia</td>
-                        <td><span class="appointment-status status-pending">Pendiente</span></td>
-                    </tr>
+                <tbody id="appointmentsTableBody">
+                    @if(isset($appointments) && !empty($appointments))
+                        @forelse($appointments as $appointment)
+                        <tr>
+                            <td>{{ $appointment->id }}</td>
+                            <td>{{ $appointment->user->name }}</td>
+                            <td>{{ \Carbon\Carbon::parse($appointment->date)->format('d/m/Y') }}</td>
+                            <td>{{ $appointment->subject ?: 'N/A' }}</td>
+                            <td><span class="appointment-status status-{{ strtolower($appointment->status) }}">{{ $appointment->status }}</span></td>
+                            <td>{{ $appointment->modality ?: 'Consultorio' }}</td>
+                            <td>${{ number_format($appointment->price, 2) }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center">No hay citas para mostrar</td>
+                        </tr>
+                        @endforelse
+                    @else
+                        <tr>
+                            <td colspan="8" class="text-center">No hay citas disponibles</td>
+                        </tr>
+                    @endif
                 </tbody>
             </table>
-            <div class="pagination" id="appointmentsPagination">
-                <a href="#" class="pagination-item active" data-page="1">1</a>
-                <a href="#" class="pagination-item" data-page="2">2</a>
-                <a href="#" class="pagination-item" data-page="3">3</a>
-                <a href="#" class="pagination-item" data-page="4">4</a>
-                <a href="#" class="pagination-item" data-page="5">5</a>
-                <span class="pagination-separator">...</span>
-                <a href="#" class="pagination-item" data-page="10">10</a>
-            </div>
+            @if(isset($appointments) && method_exists($appointments, 'links'))
+                {{ $appointments->links() }}
+            @endif
         </div>
     </div>
 @endsection
 
 @section('scripts')
 <script src="{{ asset('js/admin/appointment-history.js') }}"></script>
+<script src="{{ asset('js/admin/appointment-history-loader.js') }}"></script>
 @endsection

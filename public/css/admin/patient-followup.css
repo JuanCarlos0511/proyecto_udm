@@ -37,31 +37,38 @@
 .patients-table {
     width: 100%;
     border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .patients-table th {
     text-align: left;
-    padding: 12px 15px;
+    padding: 15px;
     font-size: 14px;
-    font-weight: 500;
-    color: #666;
+    font-weight: 600;
+    color: #494949;
+    background-color: #f5f7fa;
     border-bottom: 1px solid #e0e0e0;
 }
 
 .patients-table td {
-    padding: 12px 15px;
+    padding: 15px;
     font-size: 14px;
     color: #333;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
 }
 
 .patient-status {
     display: inline-flex;
     align-items: center;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .status-progress {

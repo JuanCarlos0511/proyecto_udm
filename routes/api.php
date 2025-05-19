@@ -17,9 +17,11 @@ use App\Http\Controllers\FollowUpController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Las rutas relacionadas con la sesión web deben estar en web.php
 
 // User routes
 Route::apiResource('users', UserController::class);

@@ -183,9 +183,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Función para aceptar una cita
     window.acceptAppointment = function(appointmentId) {
-        // Implementar lógica para aceptar cita
-        if (confirm('¿Estás seguro de que deseas aceptar esta cita?')) {
-            const form = document.getElementById(`form-${appointmentId}`);
+        // Redirigir al método principal en appointments.js
+        if (typeof acceptAppointment === 'function' && acceptAppointment !== window.acceptAppointment) {
+            acceptAppointment(appointmentId);
+            return;
+        }
+        
+        // Implementación de respaldo por si no existe la función principal
+        const form = document.getElementById(`form-${appointmentId}`);
+        if (form) {
             const actionInput = document.createElement('input');
             actionInput.type = 'hidden';
             actionInput.name = 'action';
